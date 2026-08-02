@@ -69,14 +69,14 @@ const publicConfiguratorUrl = process.env.NEXT_PUBLIC_PUBLIC_URL ?? "https://mar
 const steps = ["Model", "Wersja", "Wyposażenie", "Podsumowanie", "Klient", "Oferta"];
 const publicAsset = (path: string) => `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}${path}`;
 const brochures = [
-  { model: "BALI CATSMART", pdf: publicAsset("/brochures/bali-catsmart.pdf"), cover: publicAsset("/images/brochures/bali-catsmart-cover-01.jpg"), pages: 20 },
-  { model: "BALI CATSPACE", pdf: publicAsset("/brochures/bali-catspace.pdf"), cover: publicAsset("/images/brochures/bali-catspace-cover-01.jpg"), pages: 20 },
-  { model: "BALI 4.2", pdf: publicAsset("/brochures/bali-4-2.pdf"), cover: publicAsset("/images/brochures/bali-4-2-cover-01.jpg"), pages: 20 },
-  { model: "BALI 4.4", pdf: publicAsset("/brochures/bali-4-4.pdf"), cover: publicAsset("/images/brochures/bali-4-4-cover-01.jpg"), pages: 20 },
-  { model: "BALI 4.6", pdf: publicAsset("/brochures/bali-4-6.pdf"), cover: publicAsset("/images/brochures/bali-4-6-cover-01.jpg"), pages: 20 },
-  { model: "BALI 5.2", pdf: publicAsset("/brochures/bali-5-2.pdf"), cover: publicAsset("/images/brochures/bali-5-2-cover-01.jpg"), pages: 12 },
-  { model: "BALI 5.8", pdf: publicAsset("/brochures/bali-5-8.pdf"), cover: publicAsset("/images/brochures/bali-5-8-cover-01.jpg"), pages: 24 },
-  { model: "BALI 7.0", pdf: publicAsset("/brochures/bali-7-0-preview.pdf"), cover: publicAsset("/images/brochures/bali-7-0-cover-1.jpg"), pages: 9, release: "PREMIERA 2027" },
+  { id: "bali-catsmart", model: "BALI CATSMART", pdf: publicAsset("/brochures/bali-catsmart.pdf"), cover: publicAsset("/images/brochures/bali-catsmart-cover-01.jpg"), pages: 20 },
+  { id: "bali-catspace", model: "BALI CATSPACE", pdf: publicAsset("/brochures/bali-catspace.pdf"), cover: publicAsset("/images/brochures/bali-catspace-cover-01.jpg"), pages: 20 },
+  { id: "bali-4-2", model: "BALI 4.2", pdf: publicAsset("/brochures/bali-4-2.pdf"), cover: publicAsset("/images/brochures/bali-4-2-cover-01.jpg"), pages: 20 },
+  { id: "bali-4-4", model: "BALI 4.4", pdf: publicAsset("/brochures/bali-4-4.pdf"), cover: publicAsset("/images/brochures/bali-4-4-cover-01.jpg"), pages: 20 },
+  { id: "bali-4-6", model: "BALI 4.6", pdf: publicAsset("/brochures/bali-4-6.pdf"), cover: publicAsset("/images/brochures/bali-4-6-cover-01.jpg"), pages: 20 },
+  { id: "bali-5-2", model: "BALI 5.2", pdf: publicAsset("/brochures/bali-5-2.pdf"), cover: publicAsset("/images/brochures/bali-5-2-cover-01.jpg"), pages: 12 },
+  { id: "bali-5-8", model: "BALI 5.8", pdf: publicAsset("/brochures/bali-5-8.pdf"), cover: publicAsset("/images/brochures/bali-5-8-cover-01.jpg"), pages: 24 },
+  { id: "bali-7-0", model: "BALI 7.0", pdf: publicAsset("/brochures/bali-7-0-preview.pdf"), cover: publicAsset("/images/brochures/bali-7-0-cover-1.jpg"), pages: 9, release: "PREMIERA 2027" },
 ];
 const modelPlans: Record<string, string> = {
   "bali-catsmart": publicAsset("/images/bali-catsmart-deck-plan.jpg"),
@@ -118,6 +118,22 @@ const versionPlanAlternatives: Record<string, string[]> = {
   "bali-5-8-v5": [publicAsset("/images/bali-5-8-6-cabins-singles.jpg")],
 };
 const plansForVersion = (id: string) => versionPlans[id] ? [versionPlans[id], ...(versionPlanAlternatives[id] ?? [])] : [];
+const brochureForModel = (item: Model) => brochures.find((brochure) => brochure.id === item.id);
+const brochureUrlForModel = (item: Model) => {
+  const brochure = brochureForModel(item);
+  if (!brochure) return publicConfiguratorUrl;
+  const fileName = brochure.pdf.split("/").pop() ?? "";
+  return new URL(`brochures/${fileName}`, publicConfiguratorUrl).toString();
+};
+const brochureFileForModel = async (item: Model) => {
+  const brochure = brochureForModel(item);
+  if (!brochure) return null;
+  const response = await fetch(brochure.pdf);
+  if (!response.ok) throw new Error(`Nie udało się pobrać broszury ${item.name}`);
+  const blob = await response.blob();
+  const safeModelName = item.name.toLocaleLowerCase("pl").replaceAll(" ", "-").replaceAll(".", "-");
+  return new File([blob], `broszura-${safeModelName}.pdf`, { type: "application/pdf" });
+};
 const cabinCount = (version: Version) => Number(version.name.match(/(\d+)\s*-?\s*kabin/i)?.[1] ?? 0);
 const cabinLabel = (count: number) => `${count} ${count >= 2 && count <= 4 ? "kabiny" : "kabin"}`;
 const cabinVersions = (item: Model) => Array.from(new Map(item.versions.map((itemVersion) => [cabinCount(itemVersion), itemVersion])).values());
@@ -284,12 +300,20 @@ export function Configurator() {
   };
   const sendClientConfigurator = async (item: Model) => {
     const url = clientConfiguratorUrl(item);
+    const brochureUrl = brochureUrlForModel(item);
     const title = `Skonfiguruj swój ${item.name} — Odisej Yacht Club`;
-    const message = `Dzień dobry,\n\nproszę otworzyć poniższy link i samodzielnie wybrać wersję oraz wyposażenie katamaranu ${item.name}:\n\n${url}\n\nPo zakończeniu konfigurację można przesłać bezpośrednio do Odisej Yacht Club.`;
-    if (navigator.share) {
+    const message = `Dzień dobry,\n\nproszę otworzyć poniższy link i samodzielnie wybrać wersję oraz wyposażenie katamaranu ${item.name}:\n\n${url}\n\nBroszura ${item.name} w formacie PDF:\n${brochureUrl}\n\nPo zakończeniu konfigurację można przesłać bezpośrednio do Odisej Yacht Club.`;
+    let brochureFile: File | null = null;
+    try {
+      brochureFile = await brochureFileForModel(item);
+    } catch {
+      showToast("Broszura będzie dostępna w wiadomości jako bezpośredni link PDF");
+    }
+    const shareData: ShareData = { title, text: message, url, ...(brochureFile ? { files: [brochureFile] } : {}) };
+    if (navigator.share && (!brochureFile || !navigator.canShare || navigator.canShare(shareData))) {
       try {
-        await navigator.share({ title, text: message, url });
-        showToast("Link został przekazany do wybranej aplikacji");
+        await navigator.share(shareData);
+        showToast("Link i broszura zostały przekazane do wysłania");
         return;
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") return;
@@ -438,7 +462,8 @@ export function Configurator() {
   const sendEmail = async () => {
     saveOffer();
     const title = `Oferta ${offerNumber} – ${model.name}`;
-    const message = `Dzień dobry,\n\nw załączniku przesyłamy konfigurację ${model.name}.\nWartość brutto: ${money(gross)}.\nNumer oferty: ${offerNumber}.\nOdbiorca: ${customer.email}\n\nOdisej Yacht Club (OYC)`;
+    const brochureUrl = brochureUrlForModel(model);
+    const message = `Dzień dobry,\n\nw załączniku przesyłamy konfigurację ${model.name}.\nWartość brutto: ${money(gross)}.\nNumer oferty: ${offerNumber}.\nOdbiorca: ${customer.email}\n\nBroszura ${model.name} w formacie PDF:\n${brochureUrl}\n\nOdisej Yacht Club (OYC)`;
     showToast("Przygotowywanie załącznika PDF…");
     let pdfBlob: Blob;
     try {
@@ -449,12 +474,19 @@ export function Configurator() {
     }
     const fileName = `${offerNumber.replaceAll("/", "-")}.pdf`;
     const file = new File([pdfBlob], fileName, { type: "application/pdf" });
-    const shareData: ShareData = { title, text: message, files: [file] };
+    let brochureFile: File | null = null;
+    try {
+      brochureFile = await brochureFileForModel(model);
+    } catch {
+      showToast("Oferta jest gotowa; broszura będzie dostępna w wiadomości jako link PDF");
+    }
+    const emailFiles = brochureFile ? [file, brochureFile] : [file];
+    const shareData: ShareData = { title, text: message, files: emailFiles };
 
     if (navigator.share && (!navigator.canShare || navigator.canShare(shareData))) {
       try {
         await navigator.share(shareData);
-        showToast("Oferta została przekazana do aplikacji pocztowej z załącznikiem");
+        showToast("Oferta i broszura zostały przekazane jako załączniki PDF");
         return;
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") return;
@@ -462,9 +494,10 @@ export function Configurator() {
     }
 
     downloadBlob(fileName, pdfBlob);
-    showToast("PDF został pobrany — dodaj go w otwartej wiadomości");
+    if (brochureFile) downloadBlob(brochureFile.name, brochureFile);
+    showToast("Oferta i broszura zostały pobrane; wiadomość zawiera też bezpośredni link do broszury");
     const subject = encodeURIComponent(title);
-    const body = encodeURIComponent(`${message}\n\nZałącznik ${fileName} został pobrany na komputer.`);
+    const body = encodeURIComponent(`${message}\n\nPliki PDF zostały pobrane na komputer i są gotowe do dołączenia do wiadomości.`);
     window.setTimeout(() => window.open(`mailto:${customer.email}?subject=${subject}&body=${body}`, "_self"), 350);
   };
   const sendConfigurationToDealer = async () => {
@@ -600,7 +633,7 @@ export function Configurator() {
 
       {compareOpen && <Modal title="Porównanie modeli" onClose={() => setCompareOpen(false)}><div className="compare-picker">{models.map((item) => <label key={item.id}><input type="checkbox" checked={compareIds.includes(item.id)} onChange={() => setCompareIds((ids) => ids.includes(item.id) ? ids.filter((id) => id !== item.id) : ids.length < 3 ? [...ids, item.id] : ids)}/>{item.name}</label>)}</div>{compareIds.length ? <div className="compare-table"><div/><b>Cena</b><b>Wersja kabinowa</b><b>Silniki standardowe</b>{compareIds.map((id) => { const item = models.find((candidate) => candidate.id === id)!; const availableCabinVersions = cabinVersions(item); const selectedCabinVersion = availableCabinVersions.find((itemVersion) => itemVersion.id === compareVersions[id]) ?? availableCabinVersions[0]; return <div className="compare-column" key={id}><h3>{item.name}</h3><span>{money(selectedCabinVersion.basePrice)}</span><span><select aria-label={`Wersja kabinowa ${item.name}`} value={selectedCabinVersion.id} onChange={(event) => setCompareVersions((current) => ({ ...current, [id]: event.target.value }))}>{availableCabinVersions.map((itemVersion) => <option value={itemVersion.id} key={itemVersion.id}>{cabinLabel(cabinCount(itemVersion))}</option>)}</select></span><span>{selectedCabinVersion.standardEngines}</span></div>; })}</div> : <p className="empty">Wybierz maksymalnie trzy modele do porównania.</p>}</Modal>}
       {brochuresOpen && <Modal title="Kolekcja BALI" onClose={() => setBrochuresOpen(false)}><p className="brochure-intro">Poznaj całą gamę katamaranów BALI. Otwórz broszurę w przeglądarce albo pobierz ją na urządzenie.</p><div className="brochure-grid">{brochures.map((item) => <article className={item.release ? "brochure-card future-brochure" : "brochure-card"} key={item.model}><div className="brochure-cover"><Image src={item.cover} alt={`Okładka broszury ${item.model}`} fill sizes="(max-width: 720px) 80vw, (max-width: 1100px) 40vw, 280px" unoptimized/>{item.release && <span className="brochure-release">{item.release}</span>}</div><div className="brochure-info"><p>BROSZURA PRODUKTOWA · {item.pages} STRON</p><h3>{item.model}</h3><div><a href={item.pdf} target="_blank" rel="noreferrer">Otwórz broszurę <span>↗</span></a><a href={item.pdf} download>Pobierz PDF <span>↓</span></a></div></div></article>)}</div></Modal>}
-      {adminOpen && <Modal title="Panel administratora" onClose={() => setAdminOpen(false)}><div className="admin-kpis"><div><strong>{models.length}</strong><span>modeli</span></div><div><strong>{models.reduce((sum, item) => sum + item.options.length + item.delivery.length, 0)}</strong><span>pozycji cenowych</span></div><div><strong>{history.length}</strong><span>zapisanych ofert</span></div></div><div className="admin-actions"><label>Wybierz nowy Excel<input type="file" accept=".xlsx,.xls" onChange={(e) => e.target.files?.[0] && showToast(`Wybrano ${e.target.files[0].name}. Plik oczekuje na walidację i publikację katalogu.`)}/></label><button onClick={() => download("katalog-bali-a-2026.json", JSON.stringify(catalog, null, 2), "application/json")}>Eksport danych katalogu</button></div><h3>Konfiguratory dla klientów</h3><p className="admin-section-intro">Wyślij klientowi link do wybranego modelu. Klient sam wybierze wersję, wyposażenie i prześle gotową konfigurację do OYC.</p><div className="client-link-list">{models.map((item) => <div key={item.id}><span><b>{item.name}</b><small>{item.versions.length} {item.versions.length === 2 ? "wersje" : "wersji"} · {item.options.length + item.delivery.length} pozycji</small></span><button type="button" onClick={() => void copyClientConfigurator(item)}>Kopiuj link</button><button type="button" className="primary" onClick={() => void sendClientConfigurator(item)}>Wyślij link</button></div>)}</div><h3>Historia ofert</h3><div className="history-list">{history.length ? history.map((item) => <div className="history-row" key={item.number}><span><b>{item.number}</b><small>{item.customer} · {item.model}{item.version ? ` · ${item.version}` : ""}</small></span><strong>{money(item.total)}</strong><time>{item.date}</time><div className="history-row-actions"><button type="button" onClick={() => { setHistoryPreview(item); setAdminOpen(false); }}>Podgląd</button><button type="button" className="primary" onClick={() => editHistoryOffer(item)}>Edytuj ofertę</button></div></div>) : <p className="empty">Historia pojawi się po przygotowaniu pierwszej oferty.</p>}</div><p className="admin-note">Przycisk „Edytuj ofertę” otwiera bezpośrednio konfigurator wyposażenia. Nowe oferty odtwarzają całą konfigurację; w starszych wpisach wyposażenie należy wybrać ponownie.</p></Modal>}
+      {adminOpen && <Modal title="Panel administratora" onClose={() => setAdminOpen(false)}><div className="admin-kpis"><div><strong>{models.length}</strong><span>modeli</span></div><div><strong>{models.reduce((sum, item) => sum + item.options.length + item.delivery.length, 0)}</strong><span>pozycji cenowych</span></div><div><strong>{history.length}</strong><span>zapisanych ofert</span></div></div><div className="admin-actions"><label>Wybierz nowy Excel<input type="file" accept=".xlsx,.xls" onChange={(e) => e.target.files?.[0] && showToast(`Wybrano ${e.target.files[0].name}. Plik oczekuje na walidację i publikację katalogu.`)}/></label><button onClick={() => download("katalog-bali-a-2026.json", JSON.stringify(catalog, null, 2), "application/json")}>Eksport danych katalogu</button></div><h3>Konfiguratory dla klientów</h3><p className="admin-section-intro">Wyślij klientowi link do wybranego modelu. Wiadomość zawiera również właściwą broszurę PDF. Klient sam wybierze wersję, wyposażenie i prześle gotową konfigurację do OYC.</p><div className="client-link-list">{models.map((item) => <div key={item.id}><span><b>{item.name}</b><small>{item.versions.length} {item.versions.length === 2 ? "wersje" : "wersji"} · {item.options.length + item.delivery.length} pozycji</small></span><button type="button" onClick={() => void copyClientConfigurator(item)}>Kopiuj link</button><button type="button" className="primary" onClick={() => void sendClientConfigurator(item)}>Wyślij link + broszurę</button></div>)}</div><h3>Historia ofert</h3><div className="history-list">{history.length ? history.map((item) => <div className="history-row" key={item.number}><span><b>{item.number}</b><small>{item.customer} · {item.model}{item.version ? ` · ${item.version}` : ""}</small></span><strong>{money(item.total)}</strong><time>{item.date}</time><div className="history-row-actions"><button type="button" onClick={() => { setHistoryPreview(item); setAdminOpen(false); }}>Podgląd</button><button type="button" className="primary" onClick={() => editHistoryOffer(item)}>Edytuj ofertę</button></div></div>) : <p className="empty">Historia pojawi się po przygotowaniu pierwszej oferty.</p>}</div><p className="admin-note">Przycisk „Edytuj ofertę” otwiera bezpośrednio konfigurator wyposażenia. Nowe oferty odtwarzają całą konfigurację; w starszych wpisach wyposażenie należy wybrać ponownie.</p></Modal>}
       {historyPreview && <Modal title={`Oferta ${historyPreview.number}`} onClose={() => setHistoryPreview(null)}><div className="history-detail-head"><div><span>KLIENT</span><strong>{historyPreview.customer}</strong><small>{historyPreview.customerEmail || "Brak adresu e-mail"}</small></div><div><span>MODEL</span><strong>{historyPreview.model}</strong><small>{historyPreview.version || "Wersja nie została zapisana"}</small></div><div><span>WARTOŚĆ BRUTTO</span><strong>{money(historyPreview.total)}</strong><small>{historyPreview.date}</small></div></div><iframe className="history-document" title={`Podgląd ${historyPreview.number}`} srcDoc={historyDocument(historyPreview)}/><div className="history-detail-actions"><button className="primary" onClick={() => editHistoryOffer(historyPreview)}>Edytuj ofertę</button><button onClick={() => void downloadPdf(historyPreview)}>Pobierz PDF</button><button onClick={() => { const frame = window.open("", "_blank", "width=1000,height=800"); if (!frame) return showToast("Zezwól przeglądarce na otwieranie okien"); frame.document.write(historyDocument(historyPreview)); frame.document.close(); frame.setTimeout(() => frame.print(), 300); }}>Drukuj</button><button className="danger" onClick={() => removeHistoryOffer(historyPreview.number)}>Usuń z historii</button></div></Modal>}
       {planOpen && planPreview && <div className="plan-lightbox"><button className="plan-lightbox-backdrop" onClick={() => setPlanOpen(false)} aria-label="Zamknij powiększony plan"/><section className="plan-lightbox-dialog" role="dialog" aria-modal="true" aria-label={`Plan: ${version.name}`}><header><div><p>{model.name} · PLAN WNĘTRZA</p><h2>{version.name}</h2></div><button onClick={() => setPlanOpen(false)} aria-label="Zamknij">×</button></header><div className="plan-lightbox-image"><Image src={planPreview} alt={`Powiększony plan: ${version.name}`} fill sizes="96vw" priority unoptimized/></div></section></div>}
       {toast && <div className="toast">{toast}</div>}
