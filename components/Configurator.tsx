@@ -223,8 +223,9 @@ export function Configurator() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("client") !== "1") return;
-    const sharedModel = models.find((item) => item.id === params.get("model"));
+    const clientParam = params.get("client");
+    const sharedModelId = clientParam === "1" ? params.get("model") : clientParam;
+    const sharedModel = models.find((item) => item.id === sharedModelId);
     if (!sharedModel) return;
     setClientMode(true);
     setModelId(sharedModel.id);
@@ -287,8 +288,7 @@ export function Configurator() {
     const url = new URL(publicConfiguratorUrl);
     url.search = "";
     url.hash = "";
-    url.searchParams.set("client", "1");
-    url.searchParams.set("model", item.id);
+    url.searchParams.set("client", item.id);
     return url.toString();
   };
   const copyClientConfigurator = async (item: Model) => {
