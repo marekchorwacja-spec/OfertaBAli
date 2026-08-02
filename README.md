@@ -1,4 +1,4 @@
-# Odisej Yachting — konfigurator BALI A-2026
+# Odisej Yacht Club (OYC) — konfigurator BALI A-2026
 
 Aplikacja sprzedażowa zasilana kompletnymi danymi z pliku `Zestawienie_modeli_BALI_A-2026.xlsx`.
 

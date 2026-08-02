@@ -1,21 +1,16 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Geist } from "next/font/google";
+import { Lato } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const cormorant = Cormorant_Garamond({
-  variable: "--font-display",
+const lato = Lato({
+  variable: "--font-lato",
   subsets: ["latin", "latin-ext"],
-  weight: ["500", "600", "700"],
+  weight: ["300", "400", "700", "900"],
 });
 
 export const metadata: Metadata = {
-  title: "Odisej Yachting | Konfigurator BALI A-2026",
-  description: "Profesjonalny konfigurator ofert katamaranów BALI dla Odisej Yachting.",
+  title: "Odisej Yacht Club | Konfigurator BALI A-2026",
+  description: "Profesjonalny konfigurator ofert katamaranów BALI dla Odisej Yacht Club (OYC).",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
@@ -29,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pl">
-      <body className={`${geistSans.variable} ${cormorant.variable}`}>
+      <body className={lato.variable}>
         {children}
       </body>
     </html>

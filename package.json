@@ -1,5 +1,5 @@
 {
-  "name": "odisej-bali-configurator",
+  "name": "oyc-bali-configurator",
   "version": "0.1.0",
   "private": true,
   "engines": {
@@ -16,6 +16,7 @@
   "dependencies": {
     "drizzle-orm": "0.45.2",
     "next": "16.2.6",
+    "pdfmake": "^0.3.11",
     "react": "19.2.6",
     "react-dom": "19.2.6"
   },
@@ -23,6 +24,7 @@
     "@cloudflare/vite-plugin": "1.37.1",
     "@tailwindcss/postcss": "4.2.1",
     "@types/node": "22.19.19",
+    "@types/pdfmake": "^0.3.3",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.2",
