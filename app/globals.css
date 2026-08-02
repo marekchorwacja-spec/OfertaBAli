@@ -116,3 +116,5 @@ body{font-family:var(--font-lato),Arial,sans-serif}
 .compare-column select:focus{border-color:var(--gold)}
 .hero .sun{width:clamp(260px,28vw,400px);height:auto;aspect-ratio:1;display:grid;place-items:center;overflow:hidden;border:1px solid rgba(255,255,255,.12)}
 .hero-bali-logo{width:170%;height:170%;object-fit:contain;filter:drop-shadow(0 8px 22px rgba(0,0,0,.22))}
+.brochure-download-button{display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(197,154,74,.58);background:var(--surface);color:var(--gold2);padding:12px 18px;text-decoration:none;font-size:10px;text-transform:uppercase;letter-spacing:.08em;transition:border-color .2s ease,background .2s ease,color .2s ease}
+.brochure-download-button:hover{border-color:var(--gold);background:rgba(197,154,74,.1);color:var(--gold2)}
