@@ -111,3 +111,8 @@ body{font-family:var(--font-lato),Arial,sans-serif}
 .client-link-list button:hover{border-color:var(--gold);color:var(--gold2)}
 .client-link-list .primary{border:0;background:linear-gradient(135deg,var(--gold2),var(--gold));color:#071426!important;box-shadow:none}
 @media(max-width:720px){.client-mode-label{display:none}.client-link-list>div{grid-template-columns:1fr 1fr}.client-link-list span{grid-column:1/-1;padding-bottom:4px}.client-link-list button{min-height:44px}}
+
+.compare-column select{width:100%;border:1px solid var(--border);background:var(--surface2);color:var(--text);padding:7px 9px;font-size:11px;outline:0;cursor:pointer}
+.compare-column select:focus{border-color:var(--gold)}
+.hero .sun{width:clamp(260px,28vw,400px);height:auto;aspect-ratio:1;display:grid;place-items:center;overflow:hidden;border:1px solid rgba(255,255,255,.12)}
+.hero-bali-logo{width:170%;height:170%;object-fit:contain;filter:drop-shadow(0 8px 22px rgba(0,0,0,.22))}

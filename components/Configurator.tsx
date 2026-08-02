@@ -65,57 +65,62 @@ type HistoryOffer = {
 
 const models = catalog.models as Model[];
 const dealerEmail = "marek.stryjecki@katamaranbali.pl";
+const publicConfiguratorUrl = process.env.NEXT_PUBLIC_PUBLIC_URL ?? "https://marekchorwacja-spec.github.io/OfertaBAli/";
 const steps = ["Model", "Wersja", "Wyposażenie", "Podsumowanie", "Klient", "Oferta"];
+const publicAsset = (path: string) => `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}${path}`;
 const brochures = [
-  { model: "BALI CATSMART", pdf: "/brochures/bali-catsmart.pdf", cover: "/images/brochures/bali-catsmart-cover-01.jpg", pages: 20 },
-  { model: "BALI CATSPACE", pdf: "/brochures/bali-catspace.pdf", cover: "/images/brochures/bali-catspace-cover-01.jpg", pages: 20 },
-  { model: "BALI 4.2", pdf: "/brochures/bali-4-2.pdf", cover: "/images/brochures/bali-4-2-cover-01.jpg", pages: 20 },
-  { model: "BALI 4.4", pdf: "/brochures/bali-4-4.pdf", cover: "/images/brochures/bali-4-4-cover-01.jpg", pages: 20 },
-  { model: "BALI 4.6", pdf: "/brochures/bali-4-6.pdf", cover: "/images/brochures/bali-4-6-cover-01.jpg", pages: 20 },
-  { model: "BALI 5.2", pdf: "/brochures/bali-5-2.pdf", cover: "/images/brochures/bali-5-2-cover-01.jpg", pages: 12 },
-  { model: "BALI 5.8", pdf: "/brochures/bali-5-8.pdf", cover: "/images/brochures/bali-5-8-cover-01.jpg", pages: 24 },
-  { model: "BALI 7.0", pdf: "/brochures/bali-7-0-preview.pdf", cover: "/images/brochures/bali-7-0-cover-1.jpg", pages: 9, release: "PREMIERA 2027" },
+  { model: "BALI CATSMART", pdf: publicAsset("/brochures/bali-catsmart.pdf"), cover: publicAsset("/images/brochures/bali-catsmart-cover-01.jpg"), pages: 20 },
+  { model: "BALI CATSPACE", pdf: publicAsset("/brochures/bali-catspace.pdf"), cover: publicAsset("/images/brochures/bali-catspace-cover-01.jpg"), pages: 20 },
+  { model: "BALI 4.2", pdf: publicAsset("/brochures/bali-4-2.pdf"), cover: publicAsset("/images/brochures/bali-4-2-cover-01.jpg"), pages: 20 },
+  { model: "BALI 4.4", pdf: publicAsset("/brochures/bali-4-4.pdf"), cover: publicAsset("/images/brochures/bali-4-4-cover-01.jpg"), pages: 20 },
+  { model: "BALI 4.6", pdf: publicAsset("/brochures/bali-4-6.pdf"), cover: publicAsset("/images/brochures/bali-4-6-cover-01.jpg"), pages: 20 },
+  { model: "BALI 5.2", pdf: publicAsset("/brochures/bali-5-2.pdf"), cover: publicAsset("/images/brochures/bali-5-2-cover-01.jpg"), pages: 12 },
+  { model: "BALI 5.8", pdf: publicAsset("/brochures/bali-5-8.pdf"), cover: publicAsset("/images/brochures/bali-5-8-cover-01.jpg"), pages: 24 },
+  { model: "BALI 7.0", pdf: publicAsset("/brochures/bali-7-0-preview.pdf"), cover: publicAsset("/images/brochures/bali-7-0-cover-1.jpg"), pages: 9, release: "PREMIERA 2027" },
 ];
 const modelPlans: Record<string, string> = {
-  "bali-catsmart": "/images/bali-catsmart-deck-plan.jpg",
-  "bali-catspace": "/images/bali-catspace-deck-fly-plan.jpg",
-  "bali-4-2": "/images/bali-4-2-flybridge-plan.jpg",
-  "bali-4-4": "/images/bali-4-4-salon-plan.jpg",
-  "bali-4-6": "/images/bali-4-6-flybridge-plan.jpg",
-  "bali-5-2": "/images/bali-5-2-flybridge-plan.png",
-  "bali-5-8": "/images/bali-5-8-deck-plan.jpg",
+  "bali-catsmart": publicAsset("/images/bali-catsmart-deck-plan.jpg"),
+  "bali-catspace": publicAsset("/images/bali-catspace-deck-fly-plan.jpg"),
+  "bali-4-2": publicAsset("/images/bali-4-2-flybridge-plan.jpg"),
+  "bali-4-4": publicAsset("/images/bali-4-4-salon-plan.jpg"),
+  "bali-4-6": publicAsset("/images/bali-4-6-flybridge-plan.jpg"),
+  "bali-5-2": publicAsset("/images/bali-5-2-flybridge-plan.png"),
+  "bali-5-8": publicAsset("/images/bali-5-8-deck-plan.jpg"),
 };
 const versionPlans: Record<string, string> = {
-  "bali-catsmart-v3": "/images/bali-catsmart-2-cabins-standard.jpg",
-  "bali-catspace-v1": "/images/bali-catspace-4-cabins.jpg",
-  "bali-catspace-v2": "/images/bali-catspace-3-cabins.jpg",
-  "bali-4-2-v1": "/images/bali-4-2-3-cabins.jpg",
-  "bali-4-2-v2": "/images/bali-4-2-3-cabins.jpg",
-  "bali-4-2-v3": "/images/bali-4-2-4-cabins-2-showers.jpg",
-  "bali-4-2-v4": "/images/bali-4-2-4-cabins-4-showers.jpg",
-  "bali-4-4-v1": "/images/bali-4-4-3-cabins.jpg",
-  "bali-4-4-v2": "/images/bali-4-4-4-cabins-skipper.jpg",
-  "bali-4-6-v1": "/images/bali-4-6-3-cabins-owner.jpg",
-  "bali-4-6-v3": "/images/bali-4-6-4-cabins-3-heads.jpg",
-  "bali-4-6-v4": "/images/bali-4-6-5-cabins-owner.jpg",
-  "bali-5-2-v2": "/images/bali-5-2-4-cabins-owner.png",
-  "bali-5-2-v4": "/images/bali-5-2-5-cabins.png",
-  "bali-5-2-v5": "/images/bali-5-2-6-cabins.png",
-  "bali-5-8-v1": "/images/bali-5-8-3-cabins.jpg",
-  "bali-5-8-v3": "/images/bali-5-8-4-cabins.jpg",
-  "bali-5-8-v5": "/images/bali-5-8-6-cabins-double.jpg",
+  "bali-catsmart-v3": publicAsset("/images/bali-catsmart-2-cabins-standard.jpg"),
+  "bali-catspace-v1": publicAsset("/images/bali-catspace-4-cabins.jpg"),
+  "bali-catspace-v2": publicAsset("/images/bali-catspace-3-cabins.jpg"),
+  "bali-4-2-v1": publicAsset("/images/bali-4-2-3-cabins.jpg"),
+  "bali-4-2-v2": publicAsset("/images/bali-4-2-3-cabins.jpg"),
+  "bali-4-2-v3": publicAsset("/images/bali-4-2-4-cabins-2-showers.jpg"),
+  "bali-4-2-v4": publicAsset("/images/bali-4-2-4-cabins-4-showers.jpg"),
+  "bali-4-4-v1": publicAsset("/images/bali-4-4-3-cabins.jpg"),
+  "bali-4-4-v2": publicAsset("/images/bali-4-4-4-cabins-skipper.jpg"),
+  "bali-4-6-v1": publicAsset("/images/bali-4-6-3-cabins-owner.jpg"),
+  "bali-4-6-v3": publicAsset("/images/bali-4-6-4-cabins-3-heads.jpg"),
+  "bali-4-6-v4": publicAsset("/images/bali-4-6-5-cabins-owner.jpg"),
+  "bali-5-2-v2": publicAsset("/images/bali-5-2-4-cabins-owner.png"),
+  "bali-5-2-v4": publicAsset("/images/bali-5-2-5-cabins.png"),
+  "bali-5-2-v5": publicAsset("/images/bali-5-2-6-cabins.png"),
+  "bali-5-8-v1": publicAsset("/images/bali-5-8-3-cabins.jpg"),
+  "bali-5-8-v3": publicAsset("/images/bali-5-8-4-cabins.jpg"),
+  "bali-5-8-v5": publicAsset("/images/bali-5-8-6-cabins-double.jpg"),
 };
 const versionPlanAlternatives: Record<string, string[]> = {
   "bali-catsmart-v3": [
-    "/images/bali-catsmart-2-cabins-starboard-forepeak.jpg",
-    "/images/bali-catsmart-2-cabins-two-forepeaks.jpg",
-    "/images/bali-catsmart-2-cabins-port-forepeak.jpg",
+    publicAsset("/images/bali-catsmart-2-cabins-starboard-forepeak.jpg"),
+    publicAsset("/images/bali-catsmart-2-cabins-two-forepeaks.jpg"),
+    publicAsset("/images/bali-catsmart-2-cabins-port-forepeak.jpg"),
   ],
-  "bali-4-4-v1": ["/images/bali-4-4-3-cabins-skipper.jpg"],
-  "bali-4-4-v2": ["/images/bali-4-4-4-cabins-skipper-wc.jpg"],
-  "bali-5-8-v5": ["/images/bali-5-8-6-cabins-singles.jpg"],
+  "bali-4-4-v1": [publicAsset("/images/bali-4-4-3-cabins-skipper.jpg")],
+  "bali-4-4-v2": [publicAsset("/images/bali-4-4-4-cabins-skipper-wc.jpg")],
+  "bali-5-8-v5": [publicAsset("/images/bali-5-8-6-cabins-singles.jpg")],
 };
 const plansForVersion = (id: string) => versionPlans[id] ? [versionPlans[id], ...(versionPlanAlternatives[id] ?? [])] : [];
+const cabinCount = (version: Version) => Number(version.name.match(/(\d+)\s*-?\s*kabin/i)?.[1] ?? 0);
+const cabinLabel = (count: number) => `${count} ${count >= 2 && count <= 4 ? "kabiny" : "kabin"}`;
+const cabinVersions = (item: Model) => Array.from(new Map(item.versions.map((itemVersion) => [cabinCount(itemVersion), itemVersion])).values());
 const emptyCustomer: Customer = {
   firstName: "", lastName: "", company: "", phone: "", email: "", country: "Polska",
   deliveryPort: "", yachtName: "", notes: "",
@@ -169,6 +174,7 @@ export function Configurator() {
   const [customer, setCustomer] = useState<Customer>(emptyCustomer);
   const [dark, setDark] = useState(true);
   const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [compareVersions, setCompareVersions] = useState<Record<string, string>>({});
   const [compareOpen, setCompareOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [brochuresOpen, setBrochuresOpen] = useState(false);
@@ -261,7 +267,7 @@ export function Configurator() {
   const updateCustomer = (field: keyof Customer, value: string) => setCustomer((current) => ({ ...current, [field]: value }));
   const showToast = (message: string) => { setToast(message); window.setTimeout(() => setToast(""), 2600); };
   const clientConfiguratorUrl = (item: Model) => {
-    const url = new URL(window.location.href);
+    const url = new URL(publicConfiguratorUrl);
     url.search = "";
     url.hash = "";
     url.searchParams.set("client", "1");
@@ -551,7 +557,7 @@ export function Configurator() {
     <main className={dark ? "app dark" : "app light"}>
       <header className="topbar">
         <button className="brand" onClick={() => setStep(clientMode ? 2 : 0)} aria-label="Strona główna">
-          <Image className="brand-logo" src="/images/odisej-yacht-club-gold-v2.png" alt="Odisej Yacht Club" width={132} height={66} priority unoptimized />
+          <Image className="brand-logo" src={publicAsset("/images/odisej-yacht-club-gold-v2.png")} alt="Odisej Yacht Club" width={132} height={66} priority unoptimized />
         </button>
         <nav>
           {clientMode ? <span className="client-mode-label">KONFIGURATOR KLIENTA · {model.name}</span> : <><button onClick={() => setCompareOpen(true)}>Porównaj <span className="count">{compareIds.length}</span></button><button onClick={() => setAdminOpen(true)}>Panel administratora</button></>}
@@ -561,7 +567,7 @@ export function Configurator() {
 
       {step === 0 ? (
         <section className="hero">
-          <div className="hero-art" aria-hidden="true"><div className="sun"/><Image className="hero-yacht-plan" src="/images/bali-5-8-silhouette.png" alt="" width={1365} height={2048} priority unoptimized/><div className="water"/></div>
+          <div className="hero-art" aria-hidden="true"><div className="sun"><Image className="hero-bali-logo" src={publicAsset("/images/bali-catamarans-logo-white.png")} alt="" width={3507} height={2480} priority unoptimized/></div><div className="water"/></div>
           <div className="hero-content">
             <p className="eyebrow">BALI CATAMARANS · CENNIK A-2026</p>
             <h1>Twoja podróż.<br/><em>Skonfigurowana.</em></h1>
@@ -578,7 +584,7 @@ export function Configurator() {
             <div className="progress-line">{steps.map((label, index) => <button key={label} className={step >= index + 1 ? "active" : ""} onClick={() => step > index + 1 && setStep(index + 1)}><i>{index + 1}</i><span>{label}</span></button>)}</div>
           </section>
 
-          {step === 1 && <section className="content-stage"><SectionHead eyebrow="Krok 1" title="Wybierz swój model" text="Osiem charakterów. Jedna filozofia swobodnego życia na wodzie."/><div className="model-grid">{models.map((item, index) => <article className="model-card" key={item.id}><div className={`model-visual tone-${index}`}>{modelPlans[item.id] ? <Image className="model-plan-image" src={modelPlans[item.id]} alt={`Plan górnego pokładu ${item.name}`} fill sizes="(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 33vw" unoptimized/> : <><span>{item.name.replace("BALI ", "")}</span><div className="mini-yacht"/></>}</div><div className="model-body"><p>OD {money(Math.min(...item.versions.map((v) => v.basePrice)))}</p><h3>{item.name}</h3><span>{item.versions.length} {item.versions.length === 2 ? "wersje" : "wersji"} · {item.versions[0].standardEngines}</span><div><button className="primary small" onClick={() => selectModel(item.id)}>Wybierz</button><label className="compare-check"><input type="checkbox" checked={compareIds.includes(item.id)} onChange={() => setCompareIds((ids) => ids.includes(item.id) ? ids.filter((id) => id !== item.id) : ids.length < 3 ? [...ids, item.id] : ids)}/> Porównaj</label></div></div></article>)}<article className="model-card future-model-card"><div className="model-visual"><Image className="future-model-cover" src="/images/brochures/bali-7-0-cover-1.jpg" alt="BALI 7.0 — premiera 2027" fill sizes="(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 33vw" priority unoptimized/><span className="future-badge">PREMIERA 2027</span></div><div className="model-body"><p>NOWY FLAGOWY MODEL</p><h3>BALI 7.0</h3><span>Światowa premiera w 2027 roku · oficjalny cennik zostanie opublikowany później</span><div><a className="primary small" href="/brochures/bali-7-0-preview.pdf" target="_blank" rel="noreferrer">Zobacz broszurę</a><small>Cena wkrótce</small></div></div></article></div></section>}
+          {step === 1 && <section className="content-stage"><SectionHead eyebrow="Krok 1" title="Wybierz swój model" text="Osiem charakterów. Jedna filozofia swobodnego życia na wodzie."/><div className="model-grid">{models.map((item, index) => <article className="model-card" key={item.id}><div className={`model-visual tone-${index}`}>{modelPlans[item.id] ? <Image className="model-plan-image" src={modelPlans[item.id]} alt={`Plan górnego pokładu ${item.name}`} fill sizes="(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 33vw" unoptimized/> : <><span>{item.name.replace("BALI ", "")}</span><div className="mini-yacht"/></>}</div><div className="model-body"><p>OD {money(Math.min(...item.versions.map((v) => v.basePrice)))}</p><h3>{item.name}</h3><span>{item.versions.length} {item.versions.length === 2 ? "wersje" : "wersji"} · {item.versions[0].standardEngines}</span><div><button className="primary small" onClick={() => selectModel(item.id)}>Wybierz</button><label className="compare-check"><input type="checkbox" checked={compareIds.includes(item.id)} onChange={() => setCompareIds((ids) => ids.includes(item.id) ? ids.filter((id) => id !== item.id) : ids.length < 3 ? [...ids, item.id] : ids)}/> Porównaj</label></div></div></article>)}<article className="model-card future-model-card"><div className="model-visual"><Image className="future-model-cover" src={publicAsset("/images/brochures/bali-7-0-cover-1.jpg")} alt="BALI 7.0 — premiera 2027" fill sizes="(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 33vw" priority unoptimized/><span className="future-badge">PREMIERA 2027</span></div><div className="model-body"><p>NOWY FLAGOWY MODEL</p><h3>BALI 7.0</h3><span>Światowa premiera w 2027 roku · oficjalny cennik zostanie opublikowany później</span><div><a className="primary small" href={publicAsset("/brochures/bali-7-0-preview.pdf")} target="_blank" rel="noreferrer">Zobacz broszurę</a><small>Cena wkrótce</small></div></div></article></div></section>}
 
           {step === 2 && <section className="content-stage narrow"><SectionHead eyebrow="Krok 2" title={`Wersja kabinowa ${model.name}`} text={model.tagline}/><div className="version-list">{model.versions.map((item) => <div key={item.id} className={versionId === item.id ? "version-choice expanded" : "version-choice"}><button className={versionId === item.id ? "version-card selected" : "version-card"} onClick={() => { setVersionId(item.id); setPlanOpen(false); setPlanPreview(""); }}><i>{versionId === item.id ? "✓" : ""}</i><span><b>{item.name}</b><small>{item.standardEngines}{versionPlans[item.id] ? ` · ${plansForVersion(item.id).length > 1 ? `${plansForVersion(item.id).length} plany wnętrza` : "plan wnętrza"}` : ""}</small></span><strong>{money(item.basePrice)}</strong></button>{versionId === item.id && versionPlans[item.id] && <section className="selected-version-preview" aria-label={`Wybrany plan: ${item.name}`}><header><div><p>WYBRANY UKŁAD WNĘTRZA</p><h3>{item.name}</h3></div><button type="button" onClick={() => { setPlanPreview(versionPlans[item.id]); setPlanOpen(true); }}>Powiększ plan <span>↗</span></button></header><div className={plansForVersion(item.id).length > 1 ? "selected-plan-gallery multiple" : "selected-plan-gallery"}>{plansForVersion(item.id).map((planSrc, planIndex) => <button type="button" className="selected-plan-image" key={planSrc} onClick={() => { setPlanPreview(planSrc); setPlanOpen(true); }} aria-label={`Powiększ ${plansForVersion(item.id).length > 1 ? `wariant ${planIndex + 1}` : "plan"}: ${item.name}`}><Image src={planSrc} alt={`${plansForVersion(item.id).length > 1 ? `Wariant ${planIndex + 1} — ` : ""}plan: ${item.name}`} fill sizes={plansForVersion(item.id).length > 1 ? "(max-width: 720px) 100vw, 500px" : "(max-width: 720px) 100vw, 1000px"} unoptimized/>{plansForVersion(item.id).length > 1 && <span>Wariant {planIndex + 1}</span>}</button>)}</div><p className="plan-hint">Kliknij plan, aby obejrzeć szczegóły na pełnym ekranie</p></section>}</div>)}</div><div className="package-panel"><div><p>PAKIET FABRYCZNY</p><h3>{model.excellencePackage.name}</h3><span>{model.excellencePackage.included.length} pozycji wyposażenia w pakiecie</span></div><strong>{money(model.excellencePackage.price)}</strong><details><summary>Zobacz pełną specyfikację</summary><ul>{model.excellencePackage.included.map((item) => <li key={item.sourceRow}>{item.description}</li>)}</ul></details></div><StepFooter price={version.basePrice + model.excellencePackage.price} onNext={() => setStep(3)}/></section>}
 
@@ -592,7 +598,7 @@ export function Configurator() {
         </>
       )}
 
-      {compareOpen && <Modal title="Porównanie modeli" onClose={() => setCompareOpen(false)}><div className="compare-picker">{models.map((item) => <label key={item.id}><input type="checkbox" checked={compareIds.includes(item.id)} onChange={() => setCompareIds((ids) => ids.includes(item.id) ? ids.filter((id) => id !== item.id) : ids.length < 3 ? [...ids, item.id] : ids)}/>{item.name}</label>)}</div>{compareIds.length ? <div className="compare-table"><div/><b>Cena od</b><b>Wersje</b><b>Silniki standardowe</b>{compareIds.map((id) => { const item = models.find((candidate) => candidate.id === id)!; return <div className="compare-column" key={id}><h3>{item.name}</h3><span>{money(Math.min(...item.versions.map((v) => v.basePrice)))}</span><span>{item.versions.length}</span><span>{item.versions[0].standardEngines}</span></div>})}</div> : <p className="empty">Wybierz maksymalnie trzy modele do porównania.</p>}</Modal>}
+      {compareOpen && <Modal title="Porównanie modeli" onClose={() => setCompareOpen(false)}><div className="compare-picker">{models.map((item) => <label key={item.id}><input type="checkbox" checked={compareIds.includes(item.id)} onChange={() => setCompareIds((ids) => ids.includes(item.id) ? ids.filter((id) => id !== item.id) : ids.length < 3 ? [...ids, item.id] : ids)}/>{item.name}</label>)}</div>{compareIds.length ? <div className="compare-table"><div/><b>Cena</b><b>Wersja kabinowa</b><b>Silniki standardowe</b>{compareIds.map((id) => { const item = models.find((candidate) => candidate.id === id)!; const availableCabinVersions = cabinVersions(item); const selectedCabinVersion = availableCabinVersions.find((itemVersion) => itemVersion.id === compareVersions[id]) ?? availableCabinVersions[0]; return <div className="compare-column" key={id}><h3>{item.name}</h3><span>{money(selectedCabinVersion.basePrice)}</span><span><select aria-label={`Wersja kabinowa ${item.name}`} value={selectedCabinVersion.id} onChange={(event) => setCompareVersions((current) => ({ ...current, [id]: event.target.value }))}>{availableCabinVersions.map((itemVersion) => <option value={itemVersion.id} key={itemVersion.id}>{cabinLabel(cabinCount(itemVersion))}</option>)}</select></span><span>{selectedCabinVersion.standardEngines}</span></div>; })}</div> : <p className="empty">Wybierz maksymalnie trzy modele do porównania.</p>}</Modal>}
       {brochuresOpen && <Modal title="Kolekcja BALI" onClose={() => setBrochuresOpen(false)}><p className="brochure-intro">Poznaj całą gamę katamaranów BALI. Otwórz broszurę w przeglądarce albo pobierz ją na urządzenie.</p><div className="brochure-grid">{brochures.map((item) => <article className={item.release ? "brochure-card future-brochure" : "brochure-card"} key={item.model}><div className="brochure-cover"><Image src={item.cover} alt={`Okładka broszury ${item.model}`} fill sizes="(max-width: 720px) 80vw, (max-width: 1100px) 40vw, 280px" unoptimized/>{item.release && <span className="brochure-release">{item.release}</span>}</div><div className="brochure-info"><p>BROSZURA PRODUKTOWA · {item.pages} STRON</p><h3>{item.model}</h3><div><a href={item.pdf} target="_blank" rel="noreferrer">Otwórz broszurę <span>↗</span></a><a href={item.pdf} download>Pobierz PDF <span>↓</span></a></div></div></article>)}</div></Modal>}
       {adminOpen && <Modal title="Panel administratora" onClose={() => setAdminOpen(false)}><div className="admin-kpis"><div><strong>{models.length}</strong><span>modeli</span></div><div><strong>{models.reduce((sum, item) => sum + item.options.length + item.delivery.length, 0)}</strong><span>pozycji cenowych</span></div><div><strong>{history.length}</strong><span>zapisanych ofert</span></div></div><div className="admin-actions"><label>Wybierz nowy Excel<input type="file" accept=".xlsx,.xls" onChange={(e) => e.target.files?.[0] && showToast(`Wybrano ${e.target.files[0].name}. Plik oczekuje na walidację i publikację katalogu.`)}/></label><button onClick={() => download("katalog-bali-a-2026.json", JSON.stringify(catalog, null, 2), "application/json")}>Eksport danych katalogu</button></div><h3>Konfiguratory dla klientów</h3><p className="admin-section-intro">Wyślij klientowi link do wybranego modelu. Klient sam wybierze wersję, wyposażenie i prześle gotową konfigurację do OYC.</p><div className="client-link-list">{models.map((item) => <div key={item.id}><span><b>{item.name}</b><small>{item.versions.length} {item.versions.length === 2 ? "wersje" : "wersji"} · {item.options.length + item.delivery.length} pozycji</small></span><button type="button" onClick={() => void copyClientConfigurator(item)}>Kopiuj link</button><button type="button" className="primary" onClick={() => void sendClientConfigurator(item)}>Wyślij link</button></div>)}</div><h3>Historia ofert</h3><div className="history-list">{history.length ? history.map((item) => <div className="history-row" key={item.number}><span><b>{item.number}</b><small>{item.customer} · {item.model}{item.version ? ` · ${item.version}` : ""}</small></span><strong>{money(item.total)}</strong><time>{item.date}</time><div className="history-row-actions"><button type="button" onClick={() => { setHistoryPreview(item); setAdminOpen(false); }}>Podgląd</button><button type="button" className="primary" onClick={() => editHistoryOffer(item)}>Edytuj ofertę</button></div></div>) : <p className="empty">Historia pojawi się po przygotowaniu pierwszej oferty.</p>}</div><p className="admin-note">Przycisk „Edytuj ofertę” otwiera bezpośrednio konfigurator wyposażenia. Nowe oferty odtwarzają całą konfigurację; w starszych wpisach wyposażenie należy wybrać ponownie.</p></Modal>}
       {historyPreview && <Modal title={`Oferta ${historyPreview.number}`} onClose={() => setHistoryPreview(null)}><div className="history-detail-head"><div><span>KLIENT</span><strong>{historyPreview.customer}</strong><small>{historyPreview.customerEmail || "Brak adresu e-mail"}</small></div><div><span>MODEL</span><strong>{historyPreview.model}</strong><small>{historyPreview.version || "Wersja nie została zapisana"}</small></div><div><span>WARTOŚĆ BRUTTO</span><strong>{money(historyPreview.total)}</strong><small>{historyPreview.date}</small></div></div><iframe className="history-document" title={`Podgląd ${historyPreview.number}`} srcDoc={historyDocument(historyPreview)}/><div className="history-detail-actions"><button className="primary" onClick={() => editHistoryOffer(historyPreview)}>Edytuj ofertę</button><button onClick={() => void downloadPdf(historyPreview)}>Pobierz PDF</button><button onClick={() => { const frame = window.open("", "_blank", "width=1000,height=800"); if (!frame) return showToast("Zezwól przeglądarce na otwieranie okien"); frame.document.write(historyDocument(historyPreview)); frame.document.close(); frame.setTimeout(() => frame.print(), 300); }}>Drukuj</button><button className="danger" onClick={() => removeHistoryOffer(historyPreview.number)}>Usuń z historii</button></div></Modal>}
