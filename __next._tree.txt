@@ -7,4 +7,4 @@
 :HL["/OfertaBAli/_next/static/media/cce080f35d014443-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/OfertaBAli/_next/static/media/f97d1853053d8931-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/OfertaBAli/_next/static/css/178b5150c5c09633.css","style"]
-0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}},"staleTime":300,"buildId":"HE9310nj59P63SX5AZRHF"}
+0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}},"staleTime":300,"buildId":"2e3oFBpgHUWQ3rav57CCC"}
