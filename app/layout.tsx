@@ -13,9 +13,15 @@ const lato = Lato({
 export const metadata: Metadata = {
   title: "Odisej Yacht Club | Konfigurator BALI A-2026",
   description: "Profesjonalny konfigurator ofert katamaranów BALI dla Odisej Yacht Club (OYC).",
+  applicationName: "Odisej Yacht Club",
+  manifest: `${basePath}/manifest.webmanifest`,
   icons: {
-    icon: `${basePath}/favicon.svg`,
-    shortcut: `${basePath}/favicon.svg`,
+    icon: [
+      { url: `${basePath}/favicon.png`, type: "image/png", sizes: "64x64" },
+      { url: `${basePath}/icons/icon-192.png`, type: "image/png", sizes: "192x192" },
+    ],
+    shortcut: `${basePath}/favicon.png`,
+    apple: [{ url: `${basePath}/apple-touch-icon.png`, type: "image/png", sizes: "180x180" }],
   },
 };
 
