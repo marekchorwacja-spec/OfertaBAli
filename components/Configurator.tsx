@@ -78,6 +78,16 @@ const brochures = [
   { id: "bali-5-8", model: "BALI 5.8", pdf: publicAsset("/brochures/bali-5-8.pdf"), cover: publicAsset("/images/brochures/bali-5-8-cover-01.jpg"), pages: 24 },
   { id: "bali-7-0", model: "BALI 7.0", pdf: publicAsset("/brochures/bali-7-0-preview.pdf"), cover: publicAsset("/images/brochures/bali-7-0-cover-1.jpg"), pages: 9, release: "PREMIERA 2027" },
 ];
+const specifications = [
+  { id: "bali-catsmart", model: "BALI CATSMART", pdf: publicAsset("/specifications/bali-catsmart.pdf"), pages: 8 },
+  { id: "bali-catspace", model: "BALI CATSPACE", pdf: publicAsset("/specifications/bali-catspace.pdf"), pages: 7 },
+  { id: "bali-4-2", model: "BALI 4.2", pdf: publicAsset("/specifications/bali-4-2.pdf"), pages: 7 },
+  { id: "bali-4-4", model: "BALI 4.4", pdf: publicAsset("/specifications/bali-4-4.pdf"), pages: 7 },
+  { id: "bali-4-6", model: "BALI 4.6", pdf: publicAsset("/specifications/bali-4-6.pdf"), pages: 8 },
+  { id: "bali-5-2", model: "BALI 5.2", pdf: publicAsset("/specifications/bali-5-2.pdf"), pages: 10 },
+  { id: "bali-5-8", model: "BALI 5.8", pdf: publicAsset("/specifications/bali-5-8.pdf"), pages: 9 },
+  { id: "bali-7-0", model: "BALI 7.0", pdf: publicAsset("/specifications/bali-7-0.pdf"), pages: 1 },
+];
 const modelPlans: Record<string, string> = {
   "bali-catsmart": publicAsset("/images/bali-catsmart-deck-plan.jpg"),
   "bali-catspace": publicAsset("/images/bali-catspace-deck-fly-plan.jpg"),
@@ -151,6 +161,23 @@ const brochureFileForModel = async (item: Model) => {
   const safeModelName = item.name.toLocaleLowerCase("pl").replaceAll(" ", "-").replaceAll(".", "-");
   return new File([blob], `broszura-${safeModelName}.pdf`, { type: "application/pdf" });
 };
+const specificationForModel = (item: Model) => specifications.find((specification) => specification.id === item.id);
+const specificationById = (id: string) => specifications.find((specification) => specification.id === id);
+const specificationUrlForModel = (item: Model) => {
+  const specification = specificationForModel(item);
+  if (!specification) return publicConfiguratorUrl;
+  const fileName = specification.pdf.split("/").pop() ?? "";
+  return new URL(`specifications/${fileName}`, publicConfiguratorUrl).toString();
+};
+const specificationFileForModel = async (item: Model) => {
+  const specification = specificationForModel(item);
+  if (!specification) return null;
+  const response = await fetch(specification.pdf);
+  if (!response.ok) throw new Error(`Nie udało się pobrać specyfikacji ${item.name}`);
+  const blob = await response.blob();
+  const safeModelName = item.name.toLocaleLowerCase("pl").replaceAll(" ", "-").replaceAll(".", "-");
+  return new File([blob], `specyfikacja-${safeModelName}.pdf`, { type: "application/pdf" });
+};
 const cabinCount = (version: Version) => Number(version.name.match(/(\d+)\s*-?\s*kabin/i)?.[1] ?? 0);
 const cabinLabel = (count: number) => `${count} ${count >= 2 && count <= 4 ? "kabiny" : "kabin"}`;
 const cabinVersions = (item: Model) => Array.from(new Map(item.versions.map((itemVersion) => [cabinCount(itemVersion), itemVersion])).values());
@@ -211,6 +238,7 @@ export function Configurator() {
   const [modelId, setModelId] = useState(models[0].id);
   const model = models.find((item) => item.id === modelId) ?? models[0];
   const currentBrochure = brochures.find((item) => item.model === model.name);
+  const currentSpecification = specifications.find((item) => item.model === model.name);
   const [versionId, setVersionId] = useState(model.versions[0].id);
   const version = model.versions.find((item) => item.id === versionId) ?? model.versions[0];
   const [selected, setSelected] = useState<Record<string, number>>({});
@@ -258,14 +286,16 @@ export function Configurator() {
     const sharedModelId = clientParam === "1" ? params.get("model") : clientParam;
     const sharedModel = models.find((item) => item.id === sharedModelId);
     if (!sharedModel) return;
-    setClientMode(true);
-    setModelId(sharedModel.id);
-    setVersionId(sharedModel.versions[0].id);
-    setSelected({});
-    setDiscount(0);
-    setVat(defaultVatPercent);
-    setCustomer(emptyCustomer);
-    setStep(2);
+    window.queueMicrotask(() => {
+      setClientMode(true);
+      setModelId(sharedModel.id);
+      setVersionId(sharedModel.versions[0].id);
+      setSelected({});
+      setDiscount(0);
+      setVat(defaultVatPercent);
+      setCustomer(emptyCustomer);
+      setStep(2);
+    });
   }, []);
 
   const allOptions = [...model.options, ...model.delivery];
@@ -334,19 +364,27 @@ export function Configurator() {
   const sendClientConfigurator = async (item: Model) => {
     const url = clientConfiguratorUrl(item);
     const brochureUrl = brochureUrlForModel(item);
+    const specificationUrl = specificationUrlForModel(item);
     const title = `Skonfiguruj swój ${item.name} — Odisej Yacht Club`;
-    const message = `Dzień dobry,\n\nproszę otworzyć poniższy link i samodzielnie wybrać wersję oraz wyposażenie katamaranu ${item.name}:\n\n${url}\n\nBroszura ${item.name} w formacie PDF:\n${brochureUrl}\n\nPo zakończeniu konfigurację można przesłać bezpośrednio do Odisej Yacht Club.`;
+    const message = `Dzień dobry,\n\nproszę otworzyć poniższy link i samodzielnie wybrać wersję oraz wyposażenie katamaranu ${item.name}:\n\n${url}\n\nBroszura ${item.name} w formacie PDF:\n${brochureUrl}\n\nSpecyfikacja techniczna ${item.name} w języku polskim:\n${specificationUrl}\n\nPo zakończeniu konfigurację można przesłać bezpośrednio do Odisej Yacht Club.`;
     let brochureFile: File | null = null;
+    let specificationFile: File | null = null;
     try {
       brochureFile = await brochureFileForModel(item);
     } catch {
       showToast("Broszura będzie dostępna w wiadomości jako bezpośredni link PDF");
     }
-    const shareData: ShareData = { title, text: message, url, ...(brochureFile ? { files: [brochureFile] } : {}) };
-    if (navigator.share && (!brochureFile || !navigator.canShare || navigator.canShare(shareData))) {
+    try {
+      specificationFile = await specificationFileForModel(item);
+    } catch {
+      showToast("Specyfikacja będzie dostępna w wiadomości jako bezpośredni link PDF");
+    }
+    const files = [brochureFile, specificationFile].filter((file): file is File => Boolean(file));
+    const shareData: ShareData = { title, text: message, url, ...(files.length ? { files } : {}) };
+    if (navigator.share && (!navigator.canShare || navigator.canShare(shareData))) {
       try {
         await navigator.share(shareData);
-        showToast("Link i broszura zostały przekazane do wysłania");
+        showToast("Link, broszura i specyfikacja zostały przekazane do wysłania");
         return;
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") return;
@@ -510,7 +548,8 @@ export function Configurator() {
     saveOffer();
     const title = `Oferta ${offerNumber} – ${model.name}`;
     const brochureUrl = brochureUrlForModel(model);
-    const message = `Dzień dobry,\n\nw załączniku przesyłamy konfigurację ${model.name}.\n${vat === 0 ? "Wartość netto (VAT 0% WDT)*" : "Wartość brutto"}: ${money(gross)}.\nNumer oferty: ${offerNumber}.\nOdbiorca: ${customer.email}\n\nBroszura ${model.name} w formacie PDF:\n${brochureUrl}\n\nOdisej Yacht Club (OYC)`;
+    const specificationUrl = specificationUrlForModel(model);
+    const message = `Dzień dobry,\n\nw załącznikach przesyłamy konfigurację, broszurę oraz polską specyfikację techniczną ${model.name}.\n${vat === 0 ? "Wartość netto (VAT 0% WDT)*" : "Wartość brutto"}: ${money(gross)}.\nNumer oferty: ${offerNumber}.\nOdbiorca: ${customer.email}\n\nBroszura ${model.name}:\n${brochureUrl}\n\nSpecyfikacja techniczna ${model.name}:\n${specificationUrl}\n\nOdisej Yacht Club (OYC)`;
     showToast("Przygotowywanie załącznika PDF…");
     let pdfBlob: Blob;
     try {
@@ -522,18 +561,24 @@ export function Configurator() {
     const fileName = `${offerNumber.replaceAll("/", "-")}.pdf`;
     const file = new File([pdfBlob], fileName, { type: "application/pdf" });
     let brochureFile: File | null = null;
+    let specificationFile: File | null = null;
     try {
       brochureFile = await brochureFileForModel(model);
     } catch {
       showToast("Oferta jest gotowa; broszura będzie dostępna w wiadomości jako link PDF");
     }
-    const emailFiles = brochureFile ? [file, brochureFile] : [file];
+    try {
+      specificationFile = await specificationFileForModel(model);
+    } catch {
+      showToast("Oferta jest gotowa; specyfikacja będzie dostępna w wiadomości jako link PDF");
+    }
+    const emailFiles = [file, brochureFile, specificationFile].filter((attachment): attachment is File => Boolean(attachment));
     const shareData: ShareData = { title, text: message, files: emailFiles };
 
     if (navigator.share && (!navigator.canShare || navigator.canShare(shareData))) {
       try {
         await navigator.share(shareData);
-        showToast("Oferta i broszura zostały przekazane jako załączniki PDF");
+        showToast("Oferta, broszura i specyfikacja zostały przekazane jako załączniki PDF");
         return;
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") return;
@@ -542,7 +587,8 @@ export function Configurator() {
 
     downloadBlob(fileName, pdfBlob);
     if (brochureFile) downloadBlob(brochureFile.name, brochureFile);
-    showToast("Oferta i broszura zostały pobrane; wiadomość zawiera też bezpośredni link do broszury");
+    if (specificationFile) downloadBlob(specificationFile.name, specificationFile);
+    showToast("Oferta, broszura i specyfikacja zostały pobrane; wiadomość zawiera także bezpośrednie linki PDF");
     const subject = encodeURIComponent(title);
     const body = encodeURIComponent(`${message}\n\nPliki PDF zostały pobrane na komputer i są gotowe do dołączenia do wiadomości.`);
     window.setTimeout(() => window.open(`mailto:${customer.email}?subject=${subject}&body=${body}`, "_self"), 350);
@@ -664,7 +710,7 @@ export function Configurator() {
             <div className="progress-line">{steps.map((label, index) => <button key={label} className={step >= index + 1 ? "active" : ""} onClick={() => step > index + 1 && setStep(index + 1)}><i>{index + 1}</i><span>{label}</span></button>)}</div>
           </section>
 
-          {step === 1 && <section className="content-stage"><SectionHead eyebrow="Krok 1" title="Wybierz swój model" text="Osiem charakterów. Jedna filozofia swobodnego życia na wodzie."/><div className="model-grid">{models.map((item, index) => <article className="model-card" key={item.id}><div className={`model-visual tone-${index}`}>{modelPlans[item.id] ? <Image className="model-plan-image" src={modelPlans[item.id]} alt={`Plan górnego pokładu ${item.name}`} fill sizes="(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 33vw" unoptimized/> : <><span>{item.name.replace("BALI ", "")}</span><div className="mini-yacht"/></>}</div><div className="model-body"><p>OD {money(Math.min(...item.versions.map((v) => v.basePrice)))}</p><h3>{item.name}</h3><span>{item.versions.length} {item.versions.length === 2 ? "wersje" : "wersji"} · {item.versions[0].standardEngines}</span><div><button className="primary small" onClick={() => selectModel(item.id)}>Wybierz</button><label className="compare-check"><input type="checkbox" checked={compareIds.includes(item.id)} onChange={() => setCompareIds((ids) => ids.includes(item.id) ? ids.filter((id) => id !== item.id) : ids.length < 3 ? [...ids, item.id] : ids)}/> Porównaj</label></div></div></article>)}<article className="model-card future-model-card"><div className="model-visual"><Image className="future-model-cover" src={publicAsset("/images/brochures/bali-7-0-cover-1.jpg")} alt="BALI 7.0 — premiera 2027" fill sizes="(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 33vw" priority unoptimized/><span className="future-badge">PREMIERA 2027</span></div><div className="model-body"><p>NOWY FLAGOWY MODEL</p><h3>BALI 7.0</h3><span>Światowa premiera w 2027 roku · oficjalny cennik zostanie opublikowany później</span><div><a className="primary small" href={publicAsset("/brochures/bali-7-0-preview.pdf")} target="_blank" rel="noreferrer">Zobacz broszurę</a><small>Cena wkrótce</small></div></div></article></div></section>}
+          {step === 1 && <section className="content-stage"><SectionHead eyebrow="Krok 1" title="Wybierz swój model" text="Osiem charakterów. Jedna filozofia swobodnego życia na wodzie."/><div className="model-grid">{models.map((item, index) => <article className="model-card" key={item.id}><div className={`model-visual tone-${index}`}>{modelPlans[item.id] ? <Image className="model-plan-image" src={modelPlans[item.id]} alt={`Plan górnego pokładu ${item.name}`} fill sizes="(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 33vw" unoptimized/> : <><span>{item.name.replace("BALI ", "")}</span><div className="mini-yacht"/></>}</div><div className="model-body"><p>OD {money(Math.min(...item.versions.map((v) => v.basePrice)))}</p><h3>{item.name}</h3><span>{item.versions.length} {item.versions.length === 2 ? "wersje" : "wersji"} · {item.versions[0].standardEngines}</span><div><button className="primary small" onClick={() => selectModel(item.id)}>Wybierz</button><label className="compare-check"><input type="checkbox" checked={compareIds.includes(item.id)} onChange={() => setCompareIds((ids) => ids.includes(item.id) ? ids.filter((id) => id !== item.id) : ids.length < 3 ? [...ids, item.id] : ids)}/> Porównaj</label></div></div></article>)}<article className="model-card future-model-card"><div className="model-visual"><Image className="future-model-cover" src={publicAsset("/images/brochures/bali-7-0-cover-1.jpg")} alt="BALI 7.0 — premiera 2027" fill sizes="(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 33vw" priority unoptimized/><span className="future-badge">PREMIERA 2027</span></div><div className="model-body"><p>NOWY FLAGOWY MODEL</p><h3>BALI 7.0</h3><span>Światowa premiera w 2027 roku · oficjalny cennik zostanie opublikowany później</span><div className="future-model-actions"><a className="primary small" href={publicAsset("/brochures/bali-7-0-preview.pdf")} target="_blank" rel="noreferrer">Broszura</a><a className="brochure-download-button" href={publicAsset("/specifications/bali-7-0.pdf")} target="_blank" rel="noreferrer">Specyfikacja</a><small>Cena wkrótce</small></div></div></article></div></section>}
 
           {step === 2 && <section className="content-stage narrow"><SectionHead eyebrow="Krok 2" title={`Wersja kabinowa ${model.name}`} text={model.tagline}/><div className="version-list">{model.versions.map((item) => <div key={item.id} className={versionId === item.id ? "version-choice expanded" : "version-choice"}><button className={versionId === item.id ? "version-card selected" : "version-card"} onClick={() => { setVersionId(item.id); setPlanOpen(false); setPlanPreview(""); }}><i>{versionId === item.id ? "✓" : ""}</i><span><b>{item.name}</b><small>{item.standardEngines}{versionPlans[item.id] ? ` · ${plansForVersion(item.id).length > 1 ? `${plansForVersion(item.id).length} plany wnętrza` : "plan wnętrza"}` : ""}</small></span><strong>{money(item.basePrice)}</strong></button>{versionId === item.id && versionPlans[item.id] && <section className="selected-version-preview" aria-label={`Wybrany plan: ${item.name}`}><header><div><p>WYBRANY UKŁAD WNĘTRZA</p><h3>{item.name}</h3></div><button type="button" onClick={() => { setPlanPreview(versionPlans[item.id]); setPlanOpen(true); }}>Powiększ plan <span>↗</span></button></header><div className={plansForVersion(item.id).length > 1 ? "selected-plan-gallery multiple" : "selected-plan-gallery"}>{plansForVersion(item.id).map((planSrc, planIndex) => <button type="button" className="selected-plan-image" key={planSrc} onClick={() => { setPlanPreview(planSrc); setPlanOpen(true); }} aria-label={`Powiększ ${plansForVersion(item.id).length > 1 ? `wariant ${planIndex + 1}` : "plan"}: ${item.name}`}><Image src={planSrc} alt={`${plansForVersion(item.id).length > 1 ? `Wariant ${planIndex + 1} — ` : ""}plan: ${item.name}`} fill sizes={plansForVersion(item.id).length > 1 ? "(max-width: 720px) 100vw, 500px" : "(max-width: 720px) 100vw, 1000px"} unoptimized/>{plansForVersion(item.id).length > 1 && <span>Wariant {planIndex + 1}</span>}</button>)}</div><p className="plan-hint">Kliknij plan, aby obejrzeć szczegóły na pełnym ekranie</p></section>}</div>)}</div><div className="package-panel"><div><p>PAKIET FABRYCZNY</p><h3>{model.excellencePackage.name}</h3><span>{model.excellencePackage.included.length} pozycji wyposażenia w pakiecie</span></div><strong>{money(model.excellencePackage.price)}</strong><details><summary>Zobacz pełną specyfikację</summary><ul>{model.excellencePackage.included.map((item) => <li key={item.sourceRow}>{item.description}</li>)}</ul></details></div><StepFooter price={version.basePrice + model.excellencePackage.price} onNext={() => setStep(3)}/></section>}
 
@@ -700,19 +746,19 @@ export function Configurator() {
                 </div>
               </div>
             </div>
-            <div className="export-strip"><button onClick={() => void downloadPdf()}>Pobierz PDF</button>{currentBrochure && <a className="brochure-download-button" href={currentBrochure.pdf} download>Pobierz broszurę</a>}{!clientMode && <><button onClick={exportHtml}>Eksport HTML</button><button onClick={exportJson}>Eksport JSON</button></>}</div>
+            <div className="export-strip"><button onClick={() => void downloadPdf()}>Pobierz PDF</button>{currentBrochure && <a className="brochure-download-button" href={currentBrochure.pdf} download>Pobierz broszurę</a>}{currentSpecification && <a className="brochure-download-button" href={currentSpecification.pdf} download>Pobierz specyfikację</a>}{!clientMode && <><button onClick={exportHtml}>Eksport HTML</button><button onClick={exportJson}>Eksport JSON</button></>}</div>
             <StepFooter price={gross} label={payableValueLabel(vat)} onNext={() => setStep(5)}/>
           </section>}
 
           {step === 5 && <section className="content-stage narrow"><SectionHead eyebrow="Krok 5" title="Dane klienta" text={clientMode ? "Podaj dane kontaktowe, aby przesłać wybraną konfigurację do Odisej Yacht Club." : "Dane zostaną umieszczone na spersonalizowanej ofercie."}/><form className="customer-form" onSubmit={(e) => { e.preventDefault(); saveOffer(); setStep(6); }}><div className="field-grid"><Field label="Imię" required value={customer.firstName} onChange={(v) => updateCustomer("firstName", v)}/><Field label="Nazwisko" required value={customer.lastName} onChange={(v) => updateCustomer("lastName", v)}/><Field label="Firma" value={customer.company} onChange={(v) => updateCustomer("company", v)}/><Field label="Telefon" value={customer.phone} onChange={(v) => updateCustomer("phone", v)}/><Field label="E-mail" type="email" required value={customer.email} onChange={(v) => updateCustomer("email", v)}/><Field label="Kraj" value={customer.country} onChange={(v) => updateCustomer("country", v)}/><Field label="Port odbioru" value={customer.deliveryPort} onChange={(v) => updateCustomer("deliveryPort", v)}/><Field label="Nazwa jachtu" value={customer.yachtName} onChange={(v) => updateCustomer("yachtName", v)}/></div><label className="textarea-field">Uwagi<textarea rows={5} value={customer.notes} onChange={(e) => updateCustomer("notes", e.target.value)} placeholder="Termin odbioru, sposób finansowania, dodatkowe informacje…"/></label><button className="primary form-submit" type="submit">{clientMode ? "Zakończ konfigurację →" : "Przygotuj ofertę →"}</button></form></section>}
 
-          {step === 6 && <section className="content-stage offer-ready"><div className="success-mark">✓</div><p className="eyebrow">{clientMode ? "KONFIGURACJA KLIENTA GOTOWA" : editingOfferNumber ? "OFERTA ZAKTUALIZOWANA" : "OFERTA GOTOWA"}</p><h2>{model.name} czeka na swojego właściciela.</h2><p>{clientMode ? <>Konfiguracja <b>{offerNumber}</b> jest gotowa. Prześlij ją do Odisej Yacht Club, aby otrzymać potwierdzenie ceny i indywidualne warunki handlowe.</> : <>Oferta <b>{offerNumber}</b> dla {customer.firstName} {customer.lastName} została przygotowana. Wybierz sposób przekazania dokumentu.</>}</p><div className="offer-card"><div><span>{payableValueLabel(vat)}</span><strong>{money(gross)}</strong><small>{chosenOptions.length} opcji · {version.name}</small></div><div className="qr">OYC<small>QR</small></div></div><div className="offer-actions">{clientMode ? <button className="primary" onClick={() => void sendConfigurationToDealer()}>Wyślij konfigurację do OYC</button> : <button className="primary" onClick={() => void sendEmail()}>Wyślij z załącznikiem PDF</button>}<button onClick={() => void downloadPdf()}>Pobierz PDF</button>{currentBrochure && <a className="brochure-download-button" href={currentBrochure.pdf} download>Pobierz broszurę</a>}{!clientMode && <><button onClick={exportHtml}>Pobierz HTML</button><button onClick={exportJson}>Pobierz JSON</button></>}</div>{!clientMode && <button className="text-button" onClick={startNewOffer}>Utwórz nową konfigurację</button>}</section>}
+          {step === 6 && <section className="content-stage offer-ready"><div className="success-mark">✓</div><p className="eyebrow">{clientMode ? "KONFIGURACJA KLIENTA GOTOWA" : editingOfferNumber ? "OFERTA ZAKTUALIZOWANA" : "OFERTA GOTOWA"}</p><h2>{model.name} czeka na swojego właściciela.</h2><p>{clientMode ? <>Konfiguracja <b>{offerNumber}</b> jest gotowa. Prześlij ją do Odisej Yacht Club, aby otrzymać potwierdzenie ceny i indywidualne warunki handlowe.</> : <>Oferta <b>{offerNumber}</b> dla {customer.firstName} {customer.lastName} została przygotowana. Wybierz sposób przekazania dokumentu.</>}</p><div className="offer-card"><div><span>{payableValueLabel(vat)}</span><strong>{money(gross)}</strong><small>{chosenOptions.length} opcji · {version.name}</small></div><div className="qr">OYC<small>QR</small></div></div><div className="offer-actions">{clientMode ? <button className="primary" onClick={() => void sendConfigurationToDealer()}>Wyślij konfigurację do OYC</button> : <button className="primary" onClick={() => void sendEmail()}>Wyślij z załącznikami PDF</button>}<button onClick={() => void downloadPdf()}>Pobierz PDF</button>{currentBrochure && <a className="brochure-download-button" href={currentBrochure.pdf} download>Pobierz broszurę</a>}{currentSpecification && <a className="brochure-download-button" href={currentSpecification.pdf} download>Pobierz specyfikację</a>}{!clientMode && <><button onClick={exportHtml}>Pobierz HTML</button><button onClick={exportJson}>Pobierz JSON</button></>}</div>{!clientMode && <button className="text-button" onClick={startNewOffer}>Utwórz nową konfigurację</button>}</section>}
         </>
       )}
 
       {compareOpen && <Modal title="Porównanie modeli" onClose={() => setCompareOpen(false)}><div className="compare-picker">{models.map((item) => <label key={item.id}><input type="checkbox" checked={compareIds.includes(item.id)} onChange={() => setCompareIds((ids) => ids.includes(item.id) ? ids.filter((id) => id !== item.id) : ids.length < 3 ? [...ids, item.id] : ids)}/>{item.name}</label>)}</div>{compareIds.length ? <div className="compare-table"><div/><b>Cena</b><b>Wersja kabinowa</b><b>Silniki standardowe</b>{compareIds.map((id) => { const item = models.find((candidate) => candidate.id === id)!; const availableCabinVersions = cabinVersions(item); const selectedCabinVersion = availableCabinVersions.find((itemVersion) => itemVersion.id === compareVersions[id]) ?? availableCabinVersions[0]; return <div className="compare-column" key={id}><h3>{item.name}</h3><span>{money(selectedCabinVersion.basePrice)}</span><span><select aria-label={`Wersja kabinowa ${item.name}`} value={selectedCabinVersion.id} onChange={(event) => setCompareVersions((current) => ({ ...current, [id]: event.target.value }))}>{availableCabinVersions.map((itemVersion) => <option value={itemVersion.id} key={itemVersion.id}>{cabinLabel(cabinCount(itemVersion))}</option>)}</select></span><span>{selectedCabinVersion.standardEngines}</span></div>; })}</div> : <p className="empty">Wybierz maksymalnie trzy modele do porównania.</p>}</Modal>}
-      {brochuresOpen && <Modal title="Kolekcja BALI" onClose={() => setBrochuresOpen(false)}><p className="brochure-intro">Poznaj całą gamę katamaranów BALI. Wszystkie broszury są dostępne w języku polskim — otwórz wybraną w przeglądarce albo pobierz ją na urządzenie.</p><div className="brochure-grid">{brochures.map((item) => <article className={item.release ? "brochure-card future-brochure" : "brochure-card"} key={item.model}><div className="brochure-cover"><Image src={item.cover} alt={`Okładka polskiej broszury ${item.model}`} fill sizes="(max-width: 720px) 80vw, (max-width: 1100px) 40vw, 280px" unoptimized/>{item.release && <span className="brochure-release">{item.release}</span>}</div><div className="brochure-info"><p>POLSKA BROSZURA PRODUKTOWA · {item.pages} STRON</p><h3>{item.model}</h3><div><a href={item.pdf} target="_blank" rel="noreferrer">Otwórz broszurę <span>↗</span></a><a href={item.pdf} download>Pobierz PDF <span>↓</span></a></div></div></article>)}</div></Modal>}
-      {adminOpen && <Modal title="Panel administratora" onClose={() => setAdminOpen(false)}><div className="admin-kpis"><div><strong>{models.length}</strong><span>modeli</span></div><div><strong>{models.reduce((sum, item) => sum + item.options.length + item.delivery.length, 0)}</strong><span>pozycji cenowych</span></div><div><strong>{history.length}</strong><span>zapisanych ofert</span></div></div><div className="admin-actions"><label>Wybierz nowy Excel<input type="file" accept=".xlsx,.xls" onChange={(e) => e.target.files?.[0] && showToast(`Wybrano ${e.target.files[0].name}. Plik oczekuje na walidację i publikację katalogu.`)}/></label><button onClick={() => download("katalog-bali-a-2026.json", JSON.stringify(catalog, null, 2), "application/json")}>Eksport danych katalogu</button></div><h3>Konfiguratory dla klientów</h3><p className="admin-section-intro">Wyślij klientowi link do wybranego modelu. Wiadomość zawiera również właściwą broszurę PDF. Klient sam wybierze wersję, wyposażenie i prześle gotową konfigurację do OYC.</p><div className="client-link-list">{models.map((item) => <div key={item.id}><span><b>{item.name}</b><small>{item.versions.length} {item.versions.length === 2 ? "wersje" : "wersji"} · {item.options.length + item.delivery.length} pozycji</small></span><button type="button" onClick={() => void copyClientConfigurator(item)}>Kopiuj link</button><button type="button" className="primary" onClick={() => void sendClientConfigurator(item)}>Wyślij link + broszurę</button></div>)}</div><h3>Historia ofert</h3><div className="history-list">{history.length ? history.map((item) => <div className="history-row" key={item.number}><span><b>{item.number}</b><small>{item.customer} · {item.model}{item.version ? ` · ${item.version}` : ""}</small></span><strong>{money(item.total)}</strong><time>{item.date}</time><div className="history-row-actions"><button type="button" onClick={() => { setHistoryPreview(item); setAdminOpen(false); }}>Podgląd</button><button type="button" className="primary" onClick={() => editHistoryOffer(item)}>Edytuj ofertę</button></div></div>) : <p className="empty">Historia pojawi się po przygotowaniu pierwszej oferty.</p>}</div><p className="admin-note">Przycisk „Edytuj ofertę” otwiera bezpośrednio konfigurator wyposażenia. Nowe oferty odtwarzają całą konfigurację; w starszych wpisach wyposażenie należy wybrać ponownie.</p></Modal>}
+      {brochuresOpen && <Modal title="Kolekcja BALI" onClose={() => setBrochuresOpen(false)}><p className="brochure-intro">Poznaj całą gamę katamaranów BALI. Broszury i specyfikacje techniczne są dostępne w języku polskim — otwórz wybrany dokument albo pobierz go na urządzenie.</p><div className="brochure-grid">{brochures.map((item) => { const specification = specificationById(item.id); return <article className={item.release ? "brochure-card future-brochure" : "brochure-card"} key={item.model}><div className="brochure-cover"><Image src={item.cover} alt={`Okładka polskiej broszury ${item.model}`} fill sizes="(max-width: 720px) 80vw, (max-width: 1100px) 40vw, 280px" unoptimized/>{item.release && <span className="brochure-release">{item.release}</span>}</div><div className="brochure-info"><p>POLSKA BROSZURA PRODUKTOWA · {item.pages} STRON</p><h3>{item.model}</h3><div><a href={item.pdf} target="_blank" rel="noreferrer">Otwórz broszurę <span>↗</span></a><a href={item.pdf} download>Pobierz PDF <span>↓</span></a>{specification && <a className="specification-link" href={specification.pdf} target="_blank" rel="noreferrer">Specyfikacja PL · {specification.pages} str. <span>↗</span></a>}</div></div></article>; })}</div></Modal>}
+      {adminOpen && <Modal title="Panel administratora" onClose={() => setAdminOpen(false)}><div className="admin-kpis"><div><strong>{models.length}</strong><span>modeli</span></div><div><strong>{models.reduce((sum, item) => sum + item.options.length + item.delivery.length, 0)}</strong><span>pozycji cenowych</span></div><div><strong>{history.length}</strong><span>zapisanych ofert</span></div></div><div className="admin-actions"><label>Wybierz nowy Excel<input type="file" accept=".xlsx,.xls" onChange={(e) => e.target.files?.[0] && showToast(`Wybrano ${e.target.files[0].name}. Plik oczekuje na walidację i publikację katalogu.`)}/></label><button onClick={() => download("katalog-bali-a-2026.json", JSON.stringify(catalog, null, 2), "application/json")}>Eksport danych katalogu</button></div><h3>Konfiguratory dla klientów</h3><p className="admin-section-intro">Wyślij klientowi link do wybranego modelu. Wiadomość zawiera właściwą broszurę oraz polską specyfikację techniczną PDF. Klient sam wybierze wersję, wyposażenie i prześle gotową konfigurację do OYC.</p><div className="client-link-list">{models.map((item) => <div key={item.id}><span><b>{item.name}</b><small>{item.versions.length} {item.versions.length === 2 ? "wersje" : "wersji"} · {item.options.length + item.delivery.length} pozycji</small></span><button type="button" onClick={() => void copyClientConfigurator(item)}>Kopiuj link</button><button type="button" className="primary" onClick={() => void sendClientConfigurator(item)}>Wyślij link + 2 PDF</button></div>)}</div><h3>Historia ofert</h3><div className="history-list">{history.length ? history.map((item) => <div className="history-row" key={item.number}><span><b>{item.number}</b><small>{item.customer} · {item.model}{item.version ? ` · ${item.version}` : ""}</small></span><strong>{money(item.total)}</strong><time>{item.date}</time><div className="history-row-actions"><button type="button" onClick={() => { setHistoryPreview(item); setAdminOpen(false); }}>Podgląd</button><button type="button" className="primary" onClick={() => editHistoryOffer(item)}>Edytuj ofertę</button></div></div>) : <p className="empty">Historia pojawi się po przygotowaniu pierwszej oferty.</p>}</div><p className="admin-note">Przycisk „Edytuj ofertę” otwiera bezpośrednio konfigurator wyposażenia. Nowe oferty odtwarzają całą konfigurację; w starszych wpisach wyposażenie należy wybrać ponownie.</p></Modal>}
       {historyPreview && <Modal title={`Oferta ${historyPreview.number}`} onClose={() => setHistoryPreview(null)}><div className="history-detail-head"><div><span>KLIENT</span><strong>{historyPreview.customer}</strong><small>{historyPreview.customerEmail || "Brak adresu e-mail"}</small></div><div><span>MODEL</span><strong>{historyPreview.model}</strong><small>{historyPreview.version || "Wersja nie została zapisana"}</small></div><div><span>{payableValueLabel(normalizeVatPercent(historyPreview.payload?.calculation.vatPercent))}</span><strong>{money(historyPreview.total)}</strong><small>{historyPreview.date}</small></div></div><iframe className="history-document" title={`Podgląd ${historyPreview.number}`} srcDoc={historyDocument(historyPreview)}/><div className="history-detail-actions"><button className="primary" onClick={() => editHistoryOffer(historyPreview)}>Edytuj ofertę</button><button onClick={() => void downloadPdf(historyPreview)}>Pobierz PDF</button><button onClick={() => { const frame = window.open("", "_blank", "width=1000,height=800"); if (!frame) return showToast("Zezwól przeglądarce na otwieranie okien"); frame.document.write(historyDocument(historyPreview)); frame.document.close(); frame.setTimeout(() => frame.print(), 300); }}>Drukuj</button><button className="danger" onClick={() => removeHistoryOffer(historyPreview.number)}>Usuń z historii</button></div></Modal>}
       {planOpen && planPreview && <div className="plan-lightbox"><button className="plan-lightbox-backdrop" onClick={() => setPlanOpen(false)} aria-label="Zamknij powiększony plan"/><section className="plan-lightbox-dialog" role="dialog" aria-modal="true" aria-label={`Plan: ${version.name}`}><header><div><p>{model.name} · PLAN WNĘTRZA</p><h2>{version.name}</h2></div><button onClick={() => setPlanOpen(false)} aria-label="Zamknij">×</button></header><div className="plan-lightbox-image"><Image src={planPreview} alt={`Powiększony plan: ${version.name}`} fill sizes="96vw" priority unoptimized/></div></section></div>}
       {toast && <div className="toast">{toast}</div>}
