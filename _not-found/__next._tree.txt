@@ -1,2 +1,10 @@
-:HL["/OfertaBAli/_next/static/chunks/0lcybt4yo4f.g.css","style"]
-0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"/_not-found","param":null,"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}},"staleTime":300,"buildId":"85iXz79mGj8TstlSqkIci"}
+:HL["/OfertaBAli/_next/static/media/155cae559bbd1a77-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["/OfertaBAli/_next/static/media/39969fcf98a3026e-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["/OfertaBAli/_next/static/media/4de1fea1a954a5b6-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["/OfertaBAli/_next/static/media/6d664cce900333ee-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["/OfertaBAli/_next/static/media/7ff6869a1704182a-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["/OfertaBAli/_next/static/media/9ce3050912c26948-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["/OfertaBAli/_next/static/media/cce080f35d014443-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["/OfertaBAli/_next/static/media/f97d1853053d8931-s.p.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["/OfertaBAli/_next/static/css/214845fdafdadd2c.css","style"]
+0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"_not-found","param":null,"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}},"staleTime":300,"buildId":"Ab_XBUGhJQp0M8v1Q5il9"}
