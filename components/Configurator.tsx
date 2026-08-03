@@ -107,7 +107,9 @@ const versionPlans: Record<string, string> = {
   "bali-5-2-v4": publicAsset("/images/bali-5-2-5-cabins.png"),
   "bali-5-2-v5": publicAsset("/images/bali-5-2-6-cabins.png"),
   "bali-5-8-v1": publicAsset("/images/bali-5-8-3-cabins.jpg"),
+  "bali-5-8-v2": publicAsset("/images/bali-5-8-4-cabins-2-masters-2-skippers.jpg"),
   "bali-5-8-v3": publicAsset("/images/bali-5-8-4-cabins.jpg"),
+  "bali-5-8-v4": publicAsset("/images/bali-5-8-5-cabins.jpg"),
   "bali-5-8-v5": publicAsset("/images/bali-5-8-6-cabins-double.jpg"),
 };
 const versionPlanAlternatives: Record<string, string[]> = {
