@@ -103,6 +103,7 @@ const versionPlans: Record<string, string> = {
   "bali-4-6-v2": publicAsset("/images/bali-4-6-4-cabins-symmetric.jpg"),
   "bali-4-6-v3": publicAsset("/images/bali-4-6-4-cabins-3-heads.jpg"),
   "bali-4-6-v4": publicAsset("/images/bali-4-6-5-cabins-owner.jpg"),
+  "bali-5-2-v1": publicAsset("/images/bali-5-2-3-cabins-owner.jpg"),
   "bali-5-2-v2": publicAsset("/images/bali-5-2-4-cabins-owner.png"),
   "bali-5-2-v4": publicAsset("/images/bali-5-2-5-cabins.png"),
   "bali-5-2-v5": publicAsset("/images/bali-5-2-6-cabins.png"),
@@ -130,6 +131,7 @@ const versionPlanAlternatives: Record<string, string[]> = {
   ],
   "bali-4-4-v1": [publicAsset("/images/bali-4-4-3-cabins-skipper.jpg")],
   "bali-4-4-v2": [publicAsset("/images/bali-4-4-4-cabins-skipper-wc.jpg")],
+  "bali-5-2-v1": [publicAsset("/images/bali-5-2-3-cabins-owner-two-forepeaks.jpg")],
   "bali-5-8-v5": [publicAsset("/images/bali-5-8-6-cabins-singles.jpg")],
 };
 const plansForVersion = (id: string) => versionPlans[id] ? [versionPlans[id], ...(versionPlanAlternatives[id] ?? [])] : [];
