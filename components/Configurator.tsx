@@ -100,6 +100,7 @@ const versionPlans: Record<string, string> = {
   "bali-4-4-v1": publicAsset("/images/bali-4-4-3-cabins.jpg"),
   "bali-4-4-v2": publicAsset("/images/bali-4-4-4-cabins-skipper.jpg"),
   "bali-4-6-v1": publicAsset("/images/bali-4-6-3-cabins-owner.jpg"),
+  "bali-4-6-v2": publicAsset("/images/bali-4-6-4-cabins-symmetric.jpg"),
   "bali-4-6-v3": publicAsset("/images/bali-4-6-4-cabins-3-heads.jpg"),
   "bali-4-6-v4": publicAsset("/images/bali-4-6-5-cabins-owner.jpg"),
   "bali-5-2-v2": publicAsset("/images/bali-5-2-4-cabins-owner.png"),
