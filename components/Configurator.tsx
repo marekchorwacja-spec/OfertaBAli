@@ -160,6 +160,16 @@ const emptyCustomer: Customer = {
 };
 const eur = new Intl.NumberFormat("pl-PL", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
 const money = (value: number) => eur.format(value);
+const pendingDiscountText = "Uwzględniany przy finalnej konfiguracji / Do uzgodnienia";
+const vatSummaryLabel = (rate: number) => rate === 0
+  ? "VAT (0% - Dostawa Wewnątrzwspólnotowa UE / WDT)*"
+  : `VAT (${rate}%)`;
+const vatSummaryLabelHtml = (rate: number) => rate === 0
+  ? "VAT (0% – Dostawa Wewnątrzwspólnotowa UE / WDT)*"
+  : `VAT (${rate}%)`;
+const tradeTermsNote = "Ostateczne warunki handlowe oraz indywidualny rabat dealerski ustalane są podczas wiążącej konfiguracji jachtu.";
+const discountScopeNote = "Rabat dotyczy wyłącznie jachtu, pakietów i wyposażenia (nie obejmuje usług transportu i przygotowania).";
+const wdtNote = "Podana cena jest kwotą netto przy zastosowaniu stawki VAT 0% w ramach Wewnętrzwspólnotowej Dostawy Towarów (WDT) dla podmiotów zarejestrowanych jako czynni podatnicy VAT-UE. W przypadku zakupu przez osobę prywatną lub podmiot niezarejestrowany do VAT-UE, do ceny netto zostanie doliczony podatek VAT według obowiązującej stawki.";
 const categoryAliases: Record<string, string> = {
   "Olinowanie i żagle": "Żagle",
   "Mechanika i wyposażenie bezpieczeństwa": "Silniki i bezpieczeństwo",
@@ -274,6 +284,7 @@ export function Configurator() {
     vatPercent: vat,
   });
   const offerNumber = editingOfferNumber ?? `OYC/${new Date(offerSeed).getFullYear()}/${String(offerSeed).slice(-6)}`;
+  const discountPending = discount === 0;
 
   const selectModel = (id: string) => {
     const next = models.find((item) => item.id === id) ?? models[0];
@@ -354,6 +365,10 @@ export function Configurator() {
     customer,
   });
   const offerHtml = () => `<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>${offerNumber}</title><style>body{font-family:Arial;color:#10223f;max-width:900px;margin:40px auto;line-height:1.5}h1{font-family:Georgia;font-size:42px}.gold{color:#a77928}.row{display:flex;justify-content:space-between;gap:30px;border-bottom:1px solid #ddd;padding:10px 0}.section{margin-top:24px;padding:9px 0;color:#a77928;font-size:12px;font-weight:700;letter-spacing:.08em;border-bottom:2px solid #a77928}.calculation{margin-top:32px;border-top:2px solid #a77928}.discount{color:#9b3f3f}.total{margin-top:8px;padding:18px 14px;background:#10223f;color:#fff;border:0;font-size:24px;font-weight:700}.muted{color:#687489}img{width:120px}</style></head><body><p class="gold">ODISEJ YACHT CLUB · OFERTA ${offerNumber}</p><h1>${model.name}</h1><p>${version.name}</p><p class="muted">${customer.firstName} ${customer.lastName} · ${customer.company}</p><div class="section">JACHT, PAKIETY I WYPOSAŻENIE — PODLEGA RABATOWI</div>${chosenModelOptions.map((item) => { const quantity = selected[selectionKey(item)] ?? item.defaultQuantity; return `<div class="row"><span>${item.description}${quantity > 1 ? ` × ${quantity}` : ""}</span><strong>${item.price === null ? "Cena na zapytanie" : money(item.price * quantity)}</strong></div>`; }).join("")}${chosenDelivery.length ? `<div class="section">PRZYGOTOWANIE I DOSTAWA — BEZ RABATU</div>${chosenDelivery.map((item) => { const quantity = selected[selectionKey(item)] ?? item.defaultQuantity; return `<div class="row"><span>${item.description}${quantity > 1 ? ` × ${quantity}` : ""}</span><strong>${item.price === null ? "Cena na zapytanie" : money(item.price * quantity)}</strong></div>`; }).join("")}` : ""}<section class="calculation"><div class="row"><span>Suma jachtu, pakietów i wyposażenia przed rabatem</span><strong>${money(discountableSubtotal)}</strong></div><div class="row discount"><span>Rabat handlowy (${discount}%)</span><strong>− ${money(discountValue)}</strong></div><div class="row"><span>Cena jachtu i konfiguracji po rabacie</span><strong>${money(configurationNetAfterDiscount)}</strong></div><div class="row"><span>Przygotowanie i dostawa (bez rabatu)</span><strong>${money(deliveryNet)}</strong></div><div class="row"><span>Do zapłaty netto</span><strong>${money(net)}</strong></div><div class="row"><span>VAT (${vat}%)</span><strong>${money(vatValue)}</strong></div><div class="row total"><span>Do zapłaty brutto</span><span>${money(gross)}</span></div></section><p>Rabat dotyczy wyłącznie jachtu, pakietów i konfiguracji. Przygotowanie i dostawa są doliczane po rabacie w pełnej wartości.</p><p>Oferta ważna po pisemnym potwierdzeniu przez Odisej Yacht Club.</p><img alt="Kod QR oferty" src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(offerNumber)}"></body></html>`;
+  const professionalOfferHtml = () => {
+    void offerHtml;
+    return `<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>${offerNumber}</title><style>body{font-family:Arial,sans-serif;color:#10223f;max-width:900px;margin:40px auto;line-height:1.5;padding:0 24px}h1{font-family:Georgia,serif;font-size:42px}.gold{color:#a77928}.row{display:flex;justify-content:space-between;gap:30px;border-bottom:1px solid #ddd;padding:10px 0}.row strong{text-align:right}.section{margin-top:24px;padding:9px 0;color:#a77928;font-size:12px;font-weight:700;letter-spacing:.08em;border-bottom:2px solid #a77928}.calculation{margin-top:32px;border-top:2px solid #a77928}.discount{color:#9b3f3f}.discount strong{max-width:48%;line-height:1.35}.total{margin-top:8px;padding:18px 14px;background:#10223f;color:#fff;border:0;font-size:24px;font-weight:700}.muted{color:#687489}.notes{margin-top:24px;padding:18px 20px;background:#f8f4eb;border-left:3px solid #a77928}.notes h3{margin:12px 0 5px;color:#8d6a2d;font-size:12px;letter-spacing:.06em;text-transform:uppercase}.notes h3:first-child{margin-top:0}.notes p{margin:0 0 7px;color:#4d5d72;font-size:12px}img{width:120px}</style></head><body><p class="gold">ODISEJ YACHT CLUB · OFERTA ${offerNumber}</p><h1>${model.name}</h1><p>${version.name}</p><p class="muted">${customer.firstName} ${customer.lastName} · ${customer.company}</p><div class="section">JACHT, PAKIETY I WYPOSAŻENIE — PODLEGA RABATOWI</div>${chosenModelOptions.map((item) => { const quantity = selected[selectionKey(item)] ?? item.defaultQuantity; return `<div class="row"><span>${item.description}${quantity > 1 ? ` × ${quantity}` : ""}</span><strong>${item.price === null ? "Cena na zapytanie" : money(item.price * quantity)}</strong></div>`; }).join("")}${chosenDelivery.length ? `<div class="section">PRZYGOTOWANIE I DOSTAWA — BEZ RABATU</div>${chosenDelivery.map((item) => { const quantity = selected[selectionKey(item)] ?? item.defaultQuantity; return `<div class="row"><span>${item.description}${quantity > 1 ? ` × ${quantity}` : ""}</span><strong>${item.price === null ? "Cena na zapytanie" : money(item.price * quantity)}</strong></div>`; }).join("")}` : ""}<section class="calculation"><div class="row"><span>Jacht, pakiety i konfiguracja (cena katalogowa)</span><strong>${money(discountableSubtotal)}</strong></div><div class="row discount"><span>Indywidualny rabat dealerski${discountPending ? "" : ` (${discount}%)`}</span><strong>${discountPending ? pendingDiscountText : `− ${money(discountValue)}`}</strong></div><div class="row"><span>Cena jachtu po rabacie</span><strong>${money(configurationNetAfterDiscount)}</strong></div><div class="row"><span>Przygotowanie i dostawa</span><strong>${money(deliveryNet)}</strong></div><div class="row"><span>Suma netto</span><strong>${money(net)}</strong></div><div class="row"><span>${vatSummaryLabelHtml(vat)}</span><strong>${money(vatValue)}</strong></div><div class="row total"><span>KWOTA DO ZAPŁATY</span><span>${money(gross)}</span></div></section><div class="notes"><h3>Rabat i warunki handlowe</h3><p>${tradeTermsNote}</p><p>${discountScopeNote}</p><h3>Kwestia podatku VAT (0% WDT)</h3><p>${wdtNote}</p></div><p class="muted">Oferta ważna po pisemnym potwierdzeniu przez Odisej Yacht Club. Ceny i zakres wyposażenia należy zweryfikować przed zawarciem umowy.</p><img alt="Kod QR oferty" src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(offerNumber)}"></body></html>`;
+  };
   const saveOffer = () => {
     const record: HistoryOffer = {
       number: offerNumber,
@@ -363,7 +378,7 @@ export function Configurator() {
       version: version.name,
       total: gross,
       date: new Date().toLocaleDateString("pl-PL"),
-      html: offerHtml(),
+      html: professionalOfferHtml(),
       payload: offerPayload(),
     };
     const next = [record, ...history.filter((item) => item.number !== record.number)].slice(0, 50);
@@ -372,7 +387,7 @@ export function Configurator() {
     showToast("Oferta zapisana w historii");
   };
   const exportJson = () => download(`${offerNumber.replaceAll("/", "-")}.json`, JSON.stringify(offerPayload(), null, 2), "application/json");
-  const exportHtml = () => download(`${offerNumber.replaceAll("/", "-")}.html`, offerHtml(), "text/html");
+  const exportHtml = () => download(`${offerNumber.replaceAll("/", "-")}.html`, professionalOfferHtml(), "text/html");
   const createPdfBlob = async (historyItem?: HistoryOffer) => {
     const [{ default: pdfMake }, { default: pdfFonts }] = await Promise.all([
       import("pdfmake/build/pdfmake"),
@@ -389,6 +404,7 @@ export function Configurator() {
     const pdfDeliveryNet = calculation.deliveryNet ?? 0;
     const pdfDiscountableSubtotal = calculation.discountableSubtotal ?? Math.max((calculation.subtotal ?? 0) - pdfDeliveryNet, 0);
     const pdfConfigurationNetAfterDiscount = calculation.configurationNetAfterDiscount ?? pdfDiscountableSubtotal - (calculation.discountValue ?? 0);
+    const pdfDiscountPending = (calculation.discountPercent ?? 0) === 0;
     const priceRows: Array<Array<string | { text: string; bold?: boolean; color?: string; alignment?: "right" }>> = [];
 
     if (!historyItem || payload) {
@@ -438,15 +454,19 @@ export function Configurator() {
         ] }, layout: "lightHorizontalLines", margin: [0, 5, 0, 22] },
         { text: "PODSUMOWANIE CENOWE", style: "section" },
         { table: { widths: ["*", 150], body: [
-          ["Jacht, pakiety i konfiguracja przed rabatem", { text: money(pdfDiscountableSubtotal), alignment: "right" }],
-          [{ text: `Rabat handlowy (${calculation.discountPercent ?? 0}%)`, color: "#9b3f3f" }, { text: `− ${money(calculation.discountValue ?? 0)}`, alignment: "right", color: "#9b3f3f" }],
-          ["Cena jachtu i konfiguracji po rabacie", { text: money(pdfConfigurationNetAfterDiscount), alignment: "right", bold: true }],
-          ["Przygotowanie i dostawa (bez rabatu)", { text: money(pdfDeliveryNet), alignment: "right", bold: true }],
-          ["Do zapłaty netto", { text: money(calculation.net ?? 0), alignment: "right", bold: true }],
-          [`VAT (${calculation.vatPercent ?? 0}%)`, { text: money(calculation.vatValue ?? 0), alignment: "right" }],
-          [{ text: "DO ZAPŁATY BRUTTO", style: "totalLabel" }, { text: money(calculation.gross ?? 0), style: "totalValue", alignment: "right" }],
+          ["Jacht, pakiety i konfiguracja (cena katalogowa)", { text: money(pdfDiscountableSubtotal), alignment: "right" }],
+          [{ text: `Indywidualny rabat dealerski${pdfDiscountPending ? "" : ` (${calculation.discountPercent}%)`}`, color: "#9b3f3f" }, { text: pdfDiscountPending ? pendingDiscountText : `- ${money(calculation.discountValue ?? 0)}`, alignment: "right", color: "#9b3f3f", fontSize: pdfDiscountPending ? 7 : 9 }],
+          ["Cena jachtu po rabacie", { text: money(pdfConfigurationNetAfterDiscount), alignment: "right", bold: true }],
+          ["Przygotowanie i dostawa", { text: money(pdfDeliveryNet), alignment: "right", bold: true }],
+          ["Suma netto", { text: money(calculation.net ?? 0), alignment: "right", bold: true }],
+          [vatSummaryLabel(calculation.vatPercent ?? 0), { text: money(calculation.vatValue ?? 0), alignment: "right" }],
+          [{ text: "KWOTA DO ZAPŁATY", style: "totalLabel" }, { text: money(calculation.gross ?? 0), style: "totalValue", alignment: "right" }],
         ] }, layout: "lightHorizontalLines", margin: [0, 5, 0, 20] },
-        { text: "Rabat dotyczy wyłącznie jachtu, pakietów i konfiguracji. Wszystkie pozycje przygotowania i dostawy są doliczane po rabacie w pełnej wartości.", bold: true, color: "#8d6a2d", fontSize: 8, margin: [0, 0, 0, 6] },
+        { text: "RABAT I WARUNKI HANDLOWE", style: "noteHeading" },
+        { text: tradeTermsNote, style: "noteText" },
+        { text: discountScopeNote, style: "noteText" },
+        { text: "KWESTIA PODATKU VAT (0% WDT)", style: "noteHeading", margin: [0, 7, 0, 3] },
+        { text: wdtNote, style: "noteText", margin: [0, 0, 0, 7] },
         { text: "Oferta ważna po pisemnym potwierdzeniu przez Odisej Yacht Club. Ceny i zakres wyposażenia należy zweryfikować przed zawarciem umowy.", color: "#687489", fontSize: 8 },
       ],
       styles: {
@@ -460,6 +480,8 @@ export function Configurator() {
         tableHeader: { bold: true, color: "#ffffff", fillColor: "#10223f", margin: [4, 5, 4, 5] },
         totalLabel: { bold: true, color: "#ffffff", fillColor: "#10223f", margin: [4, 7, 4, 7] },
         totalValue: { bold: true, color: "#ffffff", fillColor: "#10223f", fontSize: 13, margin: [4, 5, 4, 5] },
+        noteHeading: { bold: true, color: "#8d6a2d", fontSize: 8, margin: [0, 0, 0, 3] },
+        noteText: { color: "#4d5d72", fontSize: 7.5, lineHeight: 1.25, margin: [0, 0, 0, 3] },
       },
     } as TDocumentDefinitions;
 
@@ -641,7 +663,39 @@ export function Configurator() {
 
           {step === 3 && <section className="content-stage equipment-stage"><SectionHead eyebrow="Krok 3" title="Wyposażenie dodatkowe" text={`${allOptions.length} pozycji z cennika ${model.name}. Wybierz to, co definiuje Twój styl podróżowania.`}/>{editingOfferNumber && <div className="edit-offer-banner"><span>EDYTUJESZ OFERTĘ</span><strong>{editingOfferNumber}</strong><button type="button" onClick={startNewOffer}>Anuluj edycję</button></div>}<div className="equipment-layout"><aside className="filters"><label>WYSZUKAJ<input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="np. generator, Raymarine…"/></label><label>KATEGORIA<select value={category} onChange={(e) => setCategory(e.target.value)}>{categories.map((item) => <option key={item}>{item}</option>)}</select></label><label>CENA DO <b>{money(maxPrice)}</b><input type="range" min="1000" max="250000" step="1000" value={maxPrice} onChange={(e) => setMaxPrice(Number(e.target.value))}/></label><button className="ghost" onClick={() => { setSearch(""); setCategory("Wszystkie"); setMaxPrice(250000); }}>Wyczyść filtry</button></aside><div className="option-list"><div className="results"><span>{filteredOptions.length} wyników</span><span>{chosenOptions.length} wybranych</span></div>{filteredOptions.map((item) => { const key = selectionKey(item); const qty = selected[key] ?? item.defaultQuantity; return <article key={key} className={qty > 0 ? "option-card selected" : "option-card"} onClick={() => toggleOption(item)}><button aria-label={qty > 0 ? "Usuń opcję" : "Dodaj opcję"}>{qty > 0 ? "✓" : "+"}</button><div><p>{displayCategory(item.category)}</p><h4>{item.description}</h4>{displayCategory(item.category) === "Dostawa" && <small>Ta pozycja nie podlega rabatowi</small>}{item.note && <small>{item.note}</small>}</div><strong>{item.priceOnRequest || item.price === null ? "Cena na zapytanie" : `+ ${money(item.price)}`}</strong></article>})}</div><aside className="live-summary"><p>TWOJA KONFIGURACJA</p><h3>{model.name}</h3><span>{version.name}</span><dl><div><dt>Cena bazowa</dt><dd>{money(version.basePrice)}</dd></div><div><dt>Excellence</dt><dd>{money(model.excellencePackage.price)}</dd></div><div><dt>Opcje ({chosenModelOptions.length})</dt><dd>{money(equipmentNet)}</dd></div><div><dt>Dostawa — bez rabatu ({chosenDelivery.length})</dt><dd>{money(deliveryNet)}</dd></div></dl><div className="summary-total"><span>RAZEM NETTO PRZED RABATEM</span><strong>{money(subtotal)}</strong></div><button className="primary" onClick={() => setStep(4)}>Podsumowanie →</button></aside></div></section>}
 
-          {step === 4 && <section className="content-stage narrow"><SectionHead eyebrow="Krok 4" title="Podsumowanie konfiguracji" text={clientMode ? "To kalkulacja według aktualnego cennika. Indywidualne warunki handlowe potwierdzi Odisej Yacht Club." : "Rabat obejmuje jacht, pakiety i konfigurację. Przygotowanie i dostawa są zawsze doliczane w pełnej wartości."}/><div className="summary-layout"><div className="summary-sheet"><h3>{model.name}</h3><p>{version.name}</p><div className="price-section-label">PODLEGA RABATOWI</div><PriceRow label="Cena bazowa" value={version.basePrice}/><PriceRow label="Pakiet Excellence" value={model.excellencePackage.price}/>{chosenModelOptions.map((item) => <PriceRow key={item.id} label={item.description} value={item.price}/>) }{chosenDelivery.length > 0 && <><div className="price-section-label no-discount">PRZYGOTOWANIE I DOSTAWA — BEZ RABATU</div>{chosenDelivery.map((item) => <PriceRow key={item.id} label={item.description} value={item.price}/>)}</>}</div><div className="calculation-card">{clientMode ? <div className="client-pricing-note"><strong>WARUNKI HANDLOWE USTALA DEALER</strong><span>Konfigurator klienta pokazuje ceny katalogowe z VAT 23%. Rabat nie jest dostępny w tym trybie.</span></div> : <><label>Rabat handlowy <span><input type="number" min="0" max="100" value={discount} onChange={(e) => setDiscount(Number(e.target.value))}/>%</span></label><label>Stawka VAT <span><input type="number" min="0" max="100" value={vat} onChange={(e) => setVat(Number(e.target.value))}/>%</span></label></>}<dl><div><dt>Jacht, pakiety i konfiguracja przed rabatem</dt><dd>{money(discountableSubtotal)}</dd></div>{!clientMode && <><div><dt>Rabat ({discount}%)</dt><dd>− {money(discountValue)}</dd></div><div><dt>Cena konfiguracji po rabacie</dt><dd>{money(configurationNetAfterDiscount)}</dd></div></>}<div className="no-discount-row"><dt>Przygotowanie i dostawa — bez rabatu</dt><dd>+ {money(deliveryNet)}</dd></div><div><dt>Do zapłaty netto</dt><dd>{money(net)}</dd></div><div><dt>VAT ({vat}%)</dt><dd>{money(vatValue)}</dd></div></dl><div className="grand-total"><span>DO ZAPŁATY BRUTTO</span><strong>{money(gross)}</strong></div></div></div><div className="export-strip"><button onClick={() => void downloadPdf()}>Pobierz PDF</button>{currentBrochure && <a className="brochure-download-button" href={currentBrochure.pdf} download>Pobierz broszurę</a>}{!clientMode && <><button onClick={exportHtml}>Eksport HTML</button><button onClick={exportJson}>Eksport JSON</button></>}</div><StepFooter price={gross} gross onNext={() => setStep(5)}/></section>}
+          {step === 4 && <section className="content-stage narrow">
+            <SectionHead eyebrow="Krok 4" title="Podsumowanie konfiguracji" text="Cena końcowa rozdziela konfigurację jachtu od usług przygotowania i dostawy, które nie podlegają rabatowi."/>
+            <div className="summary-layout">
+              <div className="summary-sheet">
+                <h3>{model.name}</h3><p>{version.name}</p>
+                <div className="price-section-label">PODLEGA RABATOWI</div>
+                <PriceRow label="Cena bazowa" value={version.basePrice}/>
+                <PriceRow label="Pakiet Excellence" value={model.excellencePackage.price}/>
+                {chosenModelOptions.map((item) => <PriceRow key={item.id} label={item.description} value={item.price}/>) }
+                {chosenDelivery.length > 0 && <><div className="price-section-label no-discount">PRZYGOTOWANIE I DOSTAWA — BEZ RABATU</div>{chosenDelivery.map((item) => <PriceRow key={item.id} label={item.description} value={item.price}/>)}</>}
+              </div>
+              <div className="calculation-card">
+                {clientMode ? <div className="client-pricing-note"><strong>WARUNKI HANDLOWE USTALA DEALER</strong><span>Cena katalogowa nie zawiera indywidualnego rabatu dealerskiego. Ostateczne warunki potwierdzi Odisej Yacht Club.</span></div> : <><label>Rabat handlowy <span><input type="number" min="0" max="100" value={discount} onChange={(e) => setDiscount(Number(e.target.value))}/>%</span></label><label>Stawka VAT <span><input type="number" min="0" max="100" value={vat} onChange={(e) => setVat(Number(e.target.value))}/>%</span></label></>}
+                <dl>
+                  <div><dt>Jacht, pakiety i konfiguracja (cena katalogowa)</dt><dd>{money(discountableSubtotal)}</dd></div>
+                  <div className="discount-summary-row"><dt>Indywidualny rabat dealerski{discountPending ? "" : ` (${discount}%)`}</dt><dd>{discountPending ? pendingDiscountText : `− ${money(discountValue)}`}</dd></div>
+                  <div><dt>Cena jachtu po rabacie</dt><dd>{money(configurationNetAfterDiscount)}</dd></div>
+                  <div className="no-discount-row"><dt>Przygotowanie i dostawa</dt><dd>{money(deliveryNet)}</dd></div>
+                  <div><dt>Suma netto</dt><dd>{money(net)}</dd></div>
+                  <div><dt>{vatSummaryLabelHtml(vat)}</dt><dd>{money(vatValue)}</dd></div>
+                </dl>
+                <div className="grand-total"><span>KWOTA DO ZAPŁATY</span><strong>{money(gross)}</strong></div>
+                <div className="pricing-legal-notes">
+                  <h4>Rabat i warunki handlowe:</h4>
+                  <p>{tradeTermsNote}</p><p>{discountScopeNote}</p>
+                  <h4>Kwestia podatku VAT (0% WDT):</h4>
+                  <p>{wdtNote}</p>
+                </div>
+              </div>
+            </div>
+            <div className="export-strip"><button onClick={() => void downloadPdf()}>Pobierz PDF</button>{currentBrochure && <a className="brochure-download-button" href={currentBrochure.pdf} download>Pobierz broszurę</a>}{!clientMode && <><button onClick={exportHtml}>Eksport HTML</button><button onClick={exportJson}>Eksport JSON</button></>}</div>
+            <StepFooter price={gross} gross onNext={() => setStep(5)}/>
+          </section>}
 
           {step === 5 && <section className="content-stage narrow"><SectionHead eyebrow="Krok 5" title="Dane klienta" text={clientMode ? "Podaj dane kontaktowe, aby przesłać wybraną konfigurację do Odisej Yacht Club." : "Dane zostaną umieszczone na spersonalizowanej ofercie."}/><form className="customer-form" onSubmit={(e) => { e.preventDefault(); saveOffer(); setStep(6); }}><div className="field-grid"><Field label="Imię" required value={customer.firstName} onChange={(v) => updateCustomer("firstName", v)}/><Field label="Nazwisko" required value={customer.lastName} onChange={(v) => updateCustomer("lastName", v)}/><Field label="Firma" value={customer.company} onChange={(v) => updateCustomer("company", v)}/><Field label="Telefon" value={customer.phone} onChange={(v) => updateCustomer("phone", v)}/><Field label="E-mail" type="email" required value={customer.email} onChange={(v) => updateCustomer("email", v)}/><Field label="Kraj" value={customer.country} onChange={(v) => updateCustomer("country", v)}/><Field label="Port odbioru" value={customer.deliveryPort} onChange={(v) => updateCustomer("deliveryPort", v)}/><Field label="Nazwa jachtu" value={customer.yachtName} onChange={(v) => updateCustomer("yachtName", v)}/></div><label className="textarea-field">Uwagi<textarea rows={5} value={customer.notes} onChange={(e) => updateCustomer("notes", e.target.value)} placeholder="Termin odbioru, sposób finansowania, dodatkowe informacje…"/></label><button className="primary form-submit" type="submit">{clientMode ? "Zakończ konfigurację →" : "Przygotuj ofertę →"}</button></form></section>}
 
