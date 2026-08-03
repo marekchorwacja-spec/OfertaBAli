@@ -88,6 +88,7 @@ const modelPlans: Record<string, string> = {
   "bali-5-8": publicAsset("/images/bali-5-8-deck-plan.jpg"),
 };
 const versionPlans: Record<string, string> = {
+  "bali-catsmart-v2": publicAsset("/images/bali-catsmart-3-cabins-standard.jpg"),
   "bali-catsmart-v3": publicAsset("/images/bali-catsmart-2-cabins-standard.jpg"),
   "bali-catspace-v1": publicAsset("/images/bali-catspace-4-cabins.jpg"),
   "bali-catspace-v2": publicAsset("/images/bali-catspace-3-cabins.jpg"),
@@ -108,6 +109,11 @@ const versionPlans: Record<string, string> = {
   "bali-5-8-v5": publicAsset("/images/bali-5-8-6-cabins-double.jpg"),
 };
 const versionPlanAlternatives: Record<string, string[]> = {
+  "bali-catsmart-v2": [
+    publicAsset("/images/bali-catsmart-3-cabins-starboard-forepeak.jpg"),
+    publicAsset("/images/bali-catsmart-3-cabins-two-forepeaks.jpg"),
+    publicAsset("/images/bali-catsmart-3-cabins-port-forepeak.jpg"),
+  ],
   "bali-catsmart-v3": [
     publicAsset("/images/bali-catsmart-2-cabins-starboard-forepeak.jpg"),
     publicAsset("/images/bali-catsmart-2-cabins-two-forepeaks.jpg"),
