@@ -45,3 +45,5 @@ next-env.d.ts
 /.tmp-sheet/
 /.pnpm-store/
 *.tsbuildinfo
+__pycache__/
+*.pyc

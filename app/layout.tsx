@@ -11,7 +11,7 @@ const lato = Lato({
 });
 
 export const metadata: Metadata = {
-  title: "Odisej Yacht Club | Konfigurator BALI A-2026",
+  title: "Odisej Yacht Club | Konfigurator BALI A-2027",
   description: "Profesjonalny konfigurator ofert katamaranów BALI dla Odisej Yacht Club (OYC).",
   applicationName: "Odisej Yacht Club",
   manifest: `${basePath}/manifest.webmanifest`,
