@@ -82,6 +82,7 @@ const specifications = [
   { id: "bali-catsmart", model: "BALI CATSMART", pdf: publicAsset("/specifications/bali-catsmart.pdf"), pages: 8 },
   { id: "bali-catspace", model: "BALI CATSPACE", pdf: publicAsset("/specifications/bali-catspace.pdf"), pages: 7 },
   { id: "bali-4-2", model: "BALI 4.2", pdf: publicAsset("/specifications/bali-4-2.pdf"), pages: 7 },
+  { id: "bali-4-3", model: "BALI 4.3", pdf: publicAsset("/specifications/bali-4-3.pdf"), pages: 2 },
   { id: "bali-4-6", model: "BALI 4.6", pdf: publicAsset("/specifications/bali-4-6.pdf"), pages: 8 },
   { id: "bali-5-2", model: "BALI 5.2", pdf: publicAsset("/specifications/bali-5-2.pdf"), pages: 10 },
   { id: "bali-5-8", model: "BALI 5.8", pdf: publicAsset("/specifications/bali-5-8.pdf"), pages: 9 },
