@@ -1,5 +1,5 @@
 1:"$Sreact.fragment"
 2:I[8999,[],""]
 3:I[5947,[],""]
-:HL["/OfertaBAli/_next/static/css/71df8ae4b02158cd.css","style"]
-0:{"rsc":["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/OfertaBAli/_next/static/css/71df8ae4b02158cd.css","precedence":"next"}]],["$","html",null,{"lang":"pl","children":["$","body",null,{"className":"__variable_4e3992","children":["$","$L2",null,{"parallelRouterKey":"children","template":["$","$L3",null,{}]}]}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"y8wL2JtiyWISWl0tmM-PJ"}
+:HL["/OfertaBAli/_next/static/css/1120601e91f82425.css","style"]
+0:{"rsc":["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/OfertaBAli/_next/static/css/1120601e91f82425.css","precedence":"next"}]],["$","html",null,{"lang":"pl","children":["$","body",null,{"className":"__variable_4e3992","children":["$","$L2",null,{"parallelRouterKey":"children","template":["$","$L3",null,{}]}]}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"O0qR7nxWG5K6A-Yq_UBoA"}
