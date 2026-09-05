@@ -462,7 +462,7 @@
         {
           "id": "bali-catsmart-89",
           "sourceRow": 89,
-          "description": "Odsysacz wody o niskim zużyciu energii 12 V, 65 l/h (zalecane panele słoneczne)",
+          "description": "Odsalarka wody o niskim zużyciu energii 12 V, 65 l/h (zalecane panele słoneczne)",
           "price": 14600,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -1412,7 +1412,7 @@
         {
           "id": "bali-catspace-86",
           "sourceRow": 86,
-          "description": "Odsysacz wody o niskim zużyciu energii 12 V, 60 l/h (zalecane panele słoneczne)",
+          "description": "Odsalarka wody o niskim zużyciu energii 12 V, 60 l/h (zalecane panele słoneczne)",
           "price": 14600,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -2420,7 +2420,7 @@
         {
           "id": "bali-4-2-87",
           "sourceRow": 87,
-          "description": "Odsysacz wody 230 V 240 L/H (wymaga agregatu prądotwórczego)",
+          "description": "Odsalarka wody 230 V 240 L/H (wymaga agregatu prądotwórczego)",
           "price": 21700,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -2430,7 +2430,7 @@
         {
           "id": "bali-4-2-88",
           "sourceRow": 88,
-          "description": "Odsysacz wody 120 V 240 l/h (wymaga agregatu prądotwórczego)",
+          "description": "Odsalarka wody 120 V 240 l/h (wymaga agregatu prądotwórczego)",
           "price": 23700,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -3600,7 +3600,7 @@
         {
           "id": "bali-4-3-105",
           "sourceRow": 105,
-          "description": "Odsysacz wody o niskim zużyciu energii 48 V, 115 l/h (1 lub 2)",
+          "description": "Odsalarka wody o niskim zużyciu energii 48 V, 115 l/h (1 lub 2)",
           "price": 19000,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -3610,7 +3610,7 @@
         {
           "id": "bali-4-3-106",
           "sourceRow": 106,
-          "description": "Odsysacz wody 230 V/50 Hz 240 l/h",
+          "description": "Odsalarka wody 230 V/50 Hz 240 l/h",
           "price": 22000,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -3620,7 +3620,7 @@
         {
           "id": "bali-4-3-107",
           "sourceRow": 107,
-          "description": "Odsysacz wody 230 V/60 Hz 240 l/h",
+          "description": "Odsalarka wody 230 V/60 Hz 240 l/h",
           "price": 23000,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -6212,7 +6212,7 @@
         {
           "id": "bali-5-2-101",
           "sourceRow": 101,
-          "description": "Odsysacz wody o niskim zużyciu energii 48 V 240 L/H",
+          "description": "Odsalarka wody o niskim zużyciu energii 48 V 240 L/H",
           "price": 23700,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -6222,7 +6222,7 @@
         {
           "id": "bali-5-2-102",
           "sourceRow": 102,
-          "description": "Odsysacz wody o niskim zużyciu energii 48 V 240 L/H ZAPASOWY",
+          "description": "Odsalarka wody o niskim zużyciu energii 48 V 240 L/H ZAPASOWA",
           "price": 23700,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -6232,7 +6232,7 @@
         {
           "id": "bali-5-2-103",
           "sourceRow": 103,
-          "description": "Odsysacz wody 230 V/50 Hz 240 l/h (wymagany generator mini 20 KVA) Niekompatybilny z ZAPASOWYM urzadzeniem wodnym",
+          "description": "Odsalarka wody 230 V/50 Hz 240 l/h (wymagany generator min. 20 kVA). Niekompatybilna z zapasową odsalarką wody",
           "price": 21700,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -6242,7 +6242,7 @@
         {
           "id": "bali-5-2-104",
           "sourceRow": 104,
-          "description": "Odsysacz wody 230 V/60 Hz 240 l/h (wymagany generator mini 20 KVA) Niekompatybilny z ZAPASOWYM urzadzeniem wodnym",
+          "description": "Odsalarka wody 230 V/60 Hz 240 l/h (wymagany generator min. 20 kVA). Niekompatybilna z zapasową odsalarką wody",
           "price": 23700,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -7688,7 +7688,7 @@
         {
           "id": "bali-5-8-99",
           "sourceRow": 99,
-          "description": "Odsysacz wody o niskim zużyciu energii 24 V 105 L/H (panele słoneczne i/lub dodatkowe alternatory)",
+          "description": "Odsalarka wody o niskim zużyciu energii 24 V, 105 l/h (panele słoneczne i/lub dodatkowe alternatory)",
           "price": 16400,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -7698,7 +7698,7 @@
         {
           "id": "bali-5-8-100",
           "sourceRow": 100,
-          "description": "Odsysacz wody 230 V/ 50 Hz 240 l/h (wymagany generator)",
+          "description": "Odsalarka wody 230 V/50 Hz, 240 l/h (wymagany generator)",
           "price": 21700,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -7708,7 +7708,7 @@
         {
           "id": "bali-5-8-101",
           "sourceRow": 101,
-          "description": "Odsysacz wody 230 V/ 60 Hz 240 l/h (wymagany generator)",
+          "description": "Odsalarka wody 230 V/60 Hz, 240 l/h (wymagany generator)",
           "price": 23700,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -8772,7 +8772,7 @@
           },
           {
             "sourceRow": 114,
-            "description": "Odsysacz wody o niskim zużyciu energii 48 V-105 L/h"
+            "description": "Odsalarka wody o niskim zużyciu energii 48 V, 105 l/h"
           },
           {
             "sourceRow": 115,
@@ -8944,7 +8944,7 @@
         {
           "id": "bali-7-0-47",
           "sourceRow": 47,
-          "description": "Szafa żaglowa z płótna żaglowego PERFORMANCE (grot, genua, sztaksel)",
+          "description": "Ożaglowanie z płótna żaglowego PERFORMANCE (grot, genua, sztaksel)",
           "price": 66000,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -9069,7 +9069,13 @@
           "priceOnRequest": false,
           "defaultQuantity": 0,
           "category": "Napęd i energia",
-          "note": ""
+          "note": "",
+          "details": [
+            "Orientacyjny czas autonomicznej pracy: 4–6 godzin (zależnie od używanego wyposażenia i temperatury).",
+            "Wyposażenie Pakietu energetycznego nr 0 — podstawowego.",
+            "Panele fotowoltaiczne na hardtopie (4 kW).",
+            "Generator 220 V, 17,5 kVA, 50 Hz."
+          ]
         },
         {
           "id": "bali-7-0-82",
@@ -9079,7 +9085,14 @@
           "priceOnRequest": false,
           "defaultQuantity": 0,
           "category": "Napęd i energia",
-          "note": ""
+          "note": "",
+          "details": [
+            "Orientacyjny czas autonomicznej pracy: 8–12 godzin (zależnie od używanego wyposażenia i temperatury).",
+            "Wyposażenie Pakietu energetycznego nr 1 — cisza i komfort.",
+            "Powiększony bank akumulatorów litowych (dodatkowe 5 × 230 Ah przy 48 V).",
+            "Panele fotowoltaiczne na flybridge’u, dachu i kadłubie (pod gondolą) — łącznie 10,3 kW.",
+            "Drugi generator 220 V, 17,5 kVA, 50 Hz."
+          ]
         },
         {
           "id": "bali-7-0-91",
@@ -9234,7 +9247,7 @@
         {
           "id": "bali-7-0-125",
           "sourceRow": 125,
-          "description": "Odsysacz wody 230 V - 50 Hz - 240 l/h",
+          "description": "Odsalarka wody 230 V - 50 Hz - 240 l/h",
           "price": 25000,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -9244,7 +9257,7 @@
         {
           "id": "bali-7-0-126",
           "sourceRow": 126,
-          "description": "Odsysacz wody 230 V - 60 Hz - 240 l/h",
+          "description": "Odsalarka wody 230 V - 60 Hz - 240 l/h",
           "price": 25000,
           "priceOnRequest": false,
           "defaultQuantity": 0,
