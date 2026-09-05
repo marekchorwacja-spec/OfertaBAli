@@ -40,6 +40,9 @@ next-env.d.ts
 /.wrangler/
 /outputs/
 /work/
+/tmp/
 /.tmp-sheet/
 /.pnpm-store/
 *.tsbuildinfo
+__pycache__/
+*.pyc
