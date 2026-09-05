@@ -123,6 +123,10 @@ const versionPlans: Record<string, string> = {
   "bali-5-8-v3": publicAsset("/images/bali-5-8-4-cabins.jpg"),
   "bali-5-8-v4": publicAsset("/images/bali-5-8-5-cabins.jpg"),
   "bali-5-8-v5": publicAsset("/images/bali-5-8-6-cabins-double.jpg"),
+  "bali-7-0-v1": publicAsset("/images/bali-7-0-3-cabins-owner-xl.png"),
+  "bali-7-0-v2": publicAsset("/images/bali-7-0-4-cabins.png"),
+  "bali-7-0-v3": publicAsset("/images/bali-7-0-3-cabins-kitchen-down.png"),
+  "bali-7-0-v4": publicAsset("/images/bali-7-0-2-cabins.png"),
 };
 const versionPlanAlternatives: Record<string, string[]> = {
   "bali-catsmart-v1": [
@@ -142,6 +146,10 @@ const versionPlanAlternatives: Record<string, string[]> = {
   ],
   "bali-5-2-v1": [publicAsset("/images/bali-5-2-3-cabins-owner-two-forepeaks.jpg")],
   "bali-5-8-v5": [publicAsset("/images/bali-5-8-6-cabins-singles.jpg")],
+  "bali-7-0-v1": [publicAsset("/images/bali-7-0-salon-kitchen-up.png")],
+  "bali-7-0-v2": [publicAsset("/images/bali-7-0-salon-kitchen-up.png")],
+  "bali-7-0-v3": [publicAsset("/images/bali-7-0-salon-bar.png")],
+  "bali-7-0-v4": [publicAsset("/images/bali-7-0-salon-bar.png")],
 };
 const plansForVersion = (id: string) => versionPlans[id] ? [versionPlans[id], ...(versionPlanAlternatives[id] ?? [])] : [];
 const brochureForModel = (item: Model) => brochures.find((brochure) => brochure.id === item.id);
