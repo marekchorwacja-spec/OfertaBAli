@@ -31,7 +31,7 @@ BROCHURES = {
     "bali-catsmart": "bali-catsmart.pdf",
     "bali-catspace": "bali-catspace.pdf",
     "bali-4-2": "bali-4-2.pdf",
-    "bali-4-4": "bali-4-4.pdf",
+    "bali-4-3": "bali-4-3.pdf",
     "bali-4-6": "bali-4-6.pdf",
     "bali-5-2": "bali-5-2.pdf",
     "bali-5-8": "bali-5-8.pdf",
@@ -43,7 +43,7 @@ KEEP_EXACT = {
     "BALI CATSMART",
     "BALI CATSPACE",
     "BALI 4.2",
-    "BALI 4.4",
+    "BALI 4.3",
     "BALI 4.6",
     "BALI 5.2",
     "BALI 5.8",
@@ -516,9 +516,153 @@ def polish_bali70_lifestyle_page(page: fitz.Page) -> None:
     )
 
 
+def polish_bali43_page(page: fitz.Page, page_number: int) -> bool:
+    """Recompose text-heavy BALI 4.3 pages as polished Polish-only layouts."""
+    if page_number not in {2, 3, 6, 7, 8, 9, 10, 11, 12}:
+        return False
+
+    page.insert_font(fontname="oyc43", fontfile=str(FONT_REGULAR))
+    page.insert_font(fontname="oyc43-bold", fontfile=str(FONT_BOLD))
+    white = (1, 1, 1)
+    black = (0.03, 0.03, 0.03)
+    green = (229 / 255, 239 / 255, 214 / 255)
+    coral = (249 / 255, 147 / 255, 112 / 255)
+
+    def cover(rect: tuple[float, float, float, float], fill=white) -> None:
+        page.draw_rect(fitz.Rect(*rect), color=fill, fill=fill, overlay=True)
+
+    def put(rect: tuple[float, float, float, float], text: str, size: float = 8, bold: bool = False,
+            align: int = fitz.TEXT_ALIGN_LEFT, rotate: int = 0, color=black, lineheight: float = 1.18) -> None:
+        page.insert_textbox(
+            fitz.Rect(*rect), text, fontsize=size,
+            fontname="oyc43-bold" if bold else "oyc43", color=color,
+            align=align, rotate=rotate, lineheight=lineheight, overlay=True,
+        )
+
+    life = (
+        "BALI 4.3 zaprojektowano z myślą o komforcie życia na pokładzie. Każdy wybór "
+        "architektoniczny, każda przestrzeń i każdy element wyposażenia służą jednemu celowi: "
+        "zapewnić więcej miejsca, swobody, komfortu i autonomii na 43-stopowym katamaranie."
+    )
+    circulation = (
+        "Pełny pokład zapewnia płynną komunikację między strefami wypoczynku. Na dziobie naturalnie "
+        "osłonięty kokpit staje się prawdziwym salonem otwartym na morze."
+    )
+    stern = (
+        "Na rufie uchylno-przesuwne drzwi BALI® całkowicie otwierają salon na kokpit, tworząc rozległą, "
+        "jednopoziomową przestrzeń z wyjątkową naturalną wentylacją."
+    )
+    rooftop = (
+        "Osłonięty obszernym bimini na całej długości pokład górny oferuje nową strefę relaksu, "
+        "równie przyjemną podczas żeglugi, jak i na kotwicy."
+    )
+    cruising_1 = "BALI 4.3 łączy komfort, autonomię i nowoczesne technologie pokładowe - zarówno podczas długich wypraw, jak i rejsów przybrzeżnych."
+    cruising_2 = "Duży zasięg, liczne schowki oraz starannie dobrane wyposażenie przygotowano z myślą o dłuższych pobytach na pokładzie."
+    cruising_3 = "Obszerny plan ożaglowania i korzystny stosunek masy do powierzchni żagli zapewniają zrównoważone, łatwo dostępne i przyjemne osiągi."
+    cruising_4 = "Silniki o mocy do 59 KM spełniają wymagania zarówno żeglugi długodystansowej, jak i użytkowników profesjonalnych."
+    cruising_5 = "Instalacja elektryczna 48 V oraz system zarządzania Boat Assist ułatwiają codzienne życie na morzu."
+    comfort = "Każda kabina oferuje wysoki poziom komfortu i łóżka o szerokości 160 cm. Apartament armatorski wyposażono w łóżko o szerokości 180 cm oraz niezależną garderobę. Całość wyróżnia się wyjątkowo starannym wykończeniem."
+
+    if page_number == 2:
+        cover((55, 642, 555, 810))
+        put((62, 648, 430, 666), "ZAPROJEKTOWANY Z MYŚLĄ O ŻYCIU NA POKŁADZIE", 9, True)
+        put((62, 670, 298, 735), life, 7.2)
+        put((62, 742, 298, 800), circulation, 7.2)
+        put((310, 670, 546, 716), stern, 7.2)
+        put((310, 723, 546, 770), rooftop, 7.2)
+    elif page_number == 3:
+        cover((198, 70, 575, 380))
+        put((205, 78, 563, 155), "BALI 4.3\nZAPROJEKTOWANY Z MYŚLĄ O ŻYCIU", 22, True, lineheight=1.0)
+        put((245, 188, 563, 245), life, 7.4)
+        put((245, 252, 563, 297), circulation, 7.4)
+        put((245, 304, 563, 342), stern, 7.4)
+        put((245, 347, 563, 382), rooftop, 7.4)
+    elif page_number == 6:
+        cover((55, 603, 555, 815))
+        put((62, 610, 300, 628), "ZAPROJEKTOWANY DO REJSÓW", 9, True)
+        put((62, 635, 291, 681), cruising_1, 7.3)
+        put((62, 688, 291, 741), cruising_2, 7.3)
+        put((62, 750, 291, 810), cruising_3, 7.3)
+        put((317, 635, 546, 681), cruising_4, 7.3)
+        put((317, 688, 546, 735), cruising_5, 7.3)
+    elif page_number == 7:
+        cover((295, 80, 555, 490))
+        put((304, 92, 542, 180), "BALI 4.3\nZAPROJEKTOWANY\nDO REJSÓW", 22, True, lineheight=0.95)
+        put((305, 218, 542, 259), cruising_1, 7.4)
+        put((305, 270, 542, 311), cruising_2, 7.4)
+        put((305, 322, 542, 374), cruising_3, 7.4)
+        put((305, 385, 542, 426), cruising_4, 7.4)
+        put((305, 437, 542, 480), cruising_5, 7.4)
+    elif page_number == 8:
+        cover((48, 58, 305, 250))
+        put((58, 67, 294, 165), "BALI 4.3\nZAPROJEKTOWANY\nDLA KOMFORTU", 22, True, lineheight=0.95)
+        put((57, 180, 294, 242), comfort, 7.5)
+    elif page_number == 9:
+        cover((85, 705, 520, 790))
+        put((92, 712, 350, 730), "ZAPROJEKTOWANY DLA KOMFORTU", 9, True)
+        put((92, 736, 505, 785), comfort, 7.4)
+    elif page_number == 10:
+        cover((18, 38, 75, 385))
+        cover((248, 62, 294, 668))
+        cover((510, 250, 555, 670))
+        cover((370, 342, 480, 382))
+        put((26, 48, 68, 370), "BALI 4.3 - STWORZONY DLA CIEBIE", 13, True, rotate=90, align=fitz.TEXT_ALIGN_CENTER)
+        put((257, 242, 289, 660), "POKŁAD / WERSJA 3-KABINOWA / 3 ŁAZIENKI", 9, True, rotate=90, align=fitz.TEXT_ALIGN_CENTER)
+        put((520, 265, 550, 657), "SALON / WERSJA 4-KABINOWA / 4 ŁAZIENKI", 9, True, rotate=90, align=fitz.TEXT_ALIGN_CENTER)
+        put((377, 350, 474, 379), "KABINA ZAŁOGI\n(OPCJA)", 6.7, True, align=fitz.TEXT_ALIGN_CENTER)
+        cover((35, 710, 560, 810), green)
+        put((55, 719, 300, 737), "ZAPROJEKTOWANY, BY EWOLUOWAĆ", 8.5, True)
+        put((55, 742, 540, 800), "BALI 4.3 może łatwo przejść z czterokabinowej konfiguracji czarterowej do trzykabinowej wersji armatorskiej. Elastyczny projekt pozwala dopasować jednostkę do zmieniających się potrzeb, przedłużając jej funkcjonalność i potencjał żeglarski na wiele lat.", 7.5)
+    elif page_number == 11:
+        cover((174, 28, 545, 102))
+        cover((25, 125, 177, 800))
+        put((180, 40, 535, 80), "BALI 4.3 - NAJWAŻNIEJSZE CECHY", 20, True)
+        features = [
+            ((34, 136, 168, 192), "01. SALON NA POKŁADZIE GÓRNYM Z BIMINI NA CAŁEJ DŁUGOŚCI"),
+            ((34, 205, 168, 282), "02. OSŁONIĘTY KOKPIT DZIOBOWY Z DRZWIAMI PROWADZĄCYMI DO SALONU"),
+            ((34, 297, 168, 389), "03. ELEKTRYCZNA PLATFORMA RUFOWA DLA PONTONU DO 3,40 m / 350 kg"),
+            ((34, 400, 168, 458), "04. NOWOCZEŚNIE ZAPROJEKTOWANE STANOWISKO STERNIKA"),
+            ((34, 469, 168, 528), "05. UCHYLNO-PRZESUWNE DRZWI BALI®"),
+            ((34, 538, 170, 642), "06. LODÓWKO-ZAMRAŻARKA 640 l Z KOSTKARKĄ ORAZ BIBLIOTECZKĄ"),
+            ((34, 653, 170, 712), "07. APARTAMENT ARMATORSKI Z ŁÓŻKIEM KING SIZE 180 cm"),
+            ((34, 722, 170, 794), "08. NIEZALEŻNA GARDEROBA W APARTAMENCIE ARMATORSKIM"),
+        ]
+        for rect, label in features:
+            put(rect, label, 6.6, True, lineheight=1.08)
+    elif page_number == 12:
+        cover((13, 420, 34, 805), coral)
+        put((17, 435, 31, 795), "© 2026 CATANA GROUP. DOKUMENT I ZDJĘCIA POGLĄDOWE, NIEWIĄŻĄCE. STOCZNIA ZASTRZEGA PRAWO DO ZMIAN BEZ UPRZEDZENIA.", 3.5, rotate=90, align=fitz.TEXT_ALIGN_CENTER)
+        cover((30, 450, 565, 660), coral)
+        left = [
+            "PROJEKT | AURÉLIEN PONCIN", "ARCHITEKT OKRĘTOWY | XAVIER FÄY",
+            "PROJEKT WNĘTRZA | BERCO DESIGN + PIATON", "DŁUGOŚĆ CAŁKOWITA | 13,98 m / 45' 10''",
+            "DŁUGOŚĆ KADŁUBA | 13,02 m / 42' 8''", "DŁUGOŚĆ LINII WODNEJ | 12,09 m / 39' 7''",
+            "SZEROKOŚĆ CAŁKOWITA | 7,42 m / 24' 4''", "ZANURZENIE | 1,40 m / 4' 7''",
+            "WYSOKOŚĆ NAD WODĄ | 21,74 m / 71' 3''", "MASA WŁASNA | 14 t / 30 865 lb",
+        ]
+        right = [
+            "MAKS. MASA ZAŁADOWANEJ JEDNOSTKI | 19,8 t / 43 652 lb",
+            "POWIERZCHNIA ŻAGLI POD WIATR | 158 m² / 1 700 ft²",
+            "GROT | 72 m² / 775 ft²", "GENUA | 50 m² / 538 ft²", "CODE 0 | 86 m² / 925 ft²",
+            "SILNIKI* | 2 x 50 KM, maks. 2 x 59 KM", "PALIWO* | maks. 800 l / 212 gal US",
+            "WODA SŁODKA* | maks. 860 l / 228 gal US", "CERTYFIKACJA CE | A-12 / B-16 / C-24 / D-30 (w toku)",
+            "* WYPOSAŻENIE ZALEŻNE OD WYBRANEGO PAKIETU I OPCJI",
+        ]
+        put((36, 458, 292, 655), "\n\n".join(left), 5.7, True, lineheight=1.12)
+        put((304, 458, 560, 655), "\n\n".join(right), 5.7, True, lineheight=1.12)
+        cover((225, 744, 370, 806), coral)
+        put((230, 751, 365, 806), "BALI CATAMARANS - STOCZNIA CATANA\nSTREFA TECHNICZNA PORTU\n66140 CANET-EN-ROUSSILLON - FRANCJA\ninfo@catanagroup.com\nwww.bali-catamarans.com", 5.5, True, align=fitz.TEXT_ALIGN_CENTER)
+        cover((14, 292, 27, 826), coral)
+        put((16, 305, 25, 820), "© 08-2026 CATANA GROUP - DOKUMENT NIESTANOWIĄCY OFERTY - MODELE MOGĄ ZAWIERAĆ WYPOSAŻENIE OPCJONALNE - WYDRUKOWANO WE FRANCJI", 3.7, rotate=90, align=fitz.TEXT_ALIGN_CENTER)
+    return True
+
+
 def translate_brochure(source: Path, destination: Path, session: requests.Session, cache: dict[str, str]) -> None:
     document = fitz.open(source)
     for page_number, page in enumerate(document, 1):
+        if source.name == "bali-4-3.pdf" and polish_bali43_page(page, page_number):
+            print(f"{source.name}: strona {page_number}/{len(document)} - ręczny skład PL")
+            continue
         items = extract_items(page, session, cache)
         for item in items:
             for source_rect in item.source_rects:
