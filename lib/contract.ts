@@ -42,6 +42,10 @@ export type ContractOfferData = {
   excellenceName: string;
   excellencePrice: number;
   options: Array<{ description: string; price: number | null; quantity: number; category: string }>;
+  discount1Percent?: number;
+  discount2Percent?: number;
+  discount1Value?: number;
+  discount2Value?: number;
   yachtNet: number;
   deliveryNet: number;
   totalNet: number;
@@ -104,6 +108,10 @@ export function buildContractPdfDefinition(offer: ContractOfferData, draft: Cont
   const hullNumber = valueOrPending(draft.hullNumber, "zostanie uzupełniony po nadaniu przez producenta");
   const engineSerials = valueOrPending(draft.engineSerials, "zostaną uzupełnione po nadaniu przez producenta");
   const specialTerms = valueOrPending(draft.specialTerms, "Brak dodatkowych warunków specjalnych.");
+  const discount1Percent = offer.discount1Percent ?? 0;
+  const discount2Percent = offer.discount2Percent ?? 0;
+  const discount1Value = offer.discount1Value ?? 0;
+  const discount2Value = offer.discount2Value ?? 0;
   const consumerClause = draft.buyerType === "b2c"
     ? "Kupujący zawiera umowę jako konsument. Żadne postanowienie umowy nie wyłącza ani nie ogranicza praw konsumenta wynikających z bezwzględnie obowiązujących przepisów. Jeżeli umowa jest zawierana na odległość lub poza lokalem przedsiębiorstwa, uprawnienia informacyjne i prawo odstąpienia stosuje się zgodnie z właściwymi przepisami, z uwzględnieniem ustawowych wyjątków dotyczących rzeczy wykonywanych według specyfikacji konsumenta lub wyraźnie spersonalizowanych."
     : "Kupujący zawiera umowę w związku z prowadzoną działalnością gospodarczą lub zawodową. Postanowienia przeznaczone wyłącznie dla konsumentów nie mają zastosowania, chyba że bezwzględnie obowiązujące przepisy stanowią inaczej.";
@@ -230,7 +238,9 @@ export function buildContractPdfDefinition(offer: ContractOfferData, draft: Cont
         [{ text: "Pozycja", style: "tableHeader" }, { text: "Cena netto", style: "tableHeader", alignment: "right" }],
         [offer.model, { text: money(offer.basePrice), alignment: "right" }],
         [offer.excellenceName, { text: money(offer.excellencePrice), alignment: "right" }],
+        [{ text: `RABAT 1 — JACHT I PAKIET (${discount1Percent}%)`, color: "#9b3f3f" }, { text: `- ${money(discount1Value)}`, alignment: "right", color: "#9b3f3f" }],
         ...equipmentRows.map(([label, price]) => [label, { text: price, alignment: "right" }]),
+        [{ text: `RABAT 2 — WYPOSAŻENIE DODATKOWE (${discount2Percent}%)`, color: "#9b3f3f" }, { text: `- ${money(discount2Value)}`, alignment: "right", color: "#9b3f3f" }],
         [{ text: "CENA JACHTU I KONFIGURACJI NETTO", bold: true }, { text: money(offer.yachtNet), bold: true, alignment: "right" }],
         [{ text: "PRZYGOTOWANIE I DOSTAWA NETTO", bold: true }, { text: money(offer.deliveryNet), bold: true, alignment: "right" }],
         [{ text: "CENA UMOWNA NETTO", style: "totalLabel" }, { text: money(offer.totalNet), style: "totalValue", alignment: "right" }],

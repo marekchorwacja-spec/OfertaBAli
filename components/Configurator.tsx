@@ -49,7 +49,6 @@ type OfferPayloadSnapshot = {
   version: Version;
   selectedOptions: Array<Option & { quantity: number }>;
   calculation: {
-    discountPercent: number;
     vatPercent: number;
     [key: string]: number;
   };
@@ -153,7 +152,7 @@ const money = (value: number) => eur.format(value);
 const pendingDiscountText = "Uwzględniany przy finalnej konfiguracji / Do uzgodnienia";
 const vatSettlementLabel = "VAT: rozliczany zgodnie z miejscem i warunkami dostawy";
 const tradeTermsNote = "Ostateczne warunki handlowe oraz indywidualny rabat dealerski ustalane są podczas wiążącej konfiguracji jachtu.";
-const discountScopeNote = "Rabat dotyczy wyłącznie jachtu, pakietów i wyposażenia (nie obejmuje usług transportu i przygotowania).";
+const discountScopeNote = "Rabat 1 dotyczy ceny bazowej jachtu i pakietu fabrycznego. Rabat 2 dotyczy wyłącznie wyposażenia dodatkowego. Żaden rabat nie obejmuje usług przygotowania ani dostawy.";
 const vatSettlementNotes = [
   "Wszystkie ceny przedstawione w niniejszej ofercie są cenami netto. Ostateczny sposób rozliczenia podatku VAT zostanie określony na podstawie miejsca przeznaczenia i dostawy jachtu, statusu nabywcy oraz spełnienia warunków wymaganych przez obowiązujące przepisy podatkowe.",
   "W przypadku dostawy jachtu z Chorwacji do innego państwa członkowskiego Unii Europejskiej, w tym do Polski, transakcja może zostać rozliczona bez chorwackiego podatku VAT, jeżeli spełnione zostaną wszystkie wymagane prawem warunki dotyczące dostawy wewnątrzwspólnotowej, w szczególności dotyczące faktycznego przemieszczenia jachtu do innego państwa członkowskiego oraz wymaganej dokumentacji.",
@@ -212,7 +211,8 @@ export function Configurator() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("Wszystkie");
   const [maxPrice, setMaxPrice] = useState<number>(250000);
-  const [discount, setDiscount] = useState(0);
+  const [discount1, setDiscount1] = useState(0);
+  const [discount2, setDiscount2] = useState(0);
   const [customer, setCustomer] = useState<Customer>(emptyCustomer);
   const [dark, setDark] = useState(true);
   const [compareIds, setCompareIds] = useState<string[]>([]);
@@ -259,7 +259,8 @@ export function Configurator() {
     setModelId(sharedModel.id);
     setVersionId(sharedModel.versions[0].id);
     setSelected({});
-    setDiscount(0);
+    setDiscount1(0);
+    setDiscount2(0);
     setCustomer(emptyCustomer);
     setStep(2);
   }, []);
@@ -275,16 +276,18 @@ export function Configurator() {
   const chosenModelOptions = model.options.filter((item) => (selected[selectionKey(item)] ?? item.defaultQuantity) > 0);
   const chosenDelivery = model.delivery.filter((item) => (selected[selectionKey(item)] ?? item.defaultQuantity) > 0);
   const chosenOptions = [...chosenModelOptions, ...chosenDelivery];
-  const { equipmentNet, deliveryNet, discountableSubtotal, subtotal, discountValue, configurationNetAfterDiscount, net } = calculateOfferPricing({
+  const { equipmentNet, deliveryNet, yachtPackageNet, discountableSubtotal, subtotal, discount1Value, discount2Value, discountValue, yachtPackageNetAfterDiscount, equipmentNetAfterDiscount, configurationNetAfterDiscount, net } = calculateOfferPricing({
     basePrice: version.basePrice,
     excellencePrice: model.excellencePackage.price,
     options: chosenModelOptions.map((item) => ({ price: item.price, quantity: selected[selectionKey(item)] ?? item.defaultQuantity })),
     delivery: chosenDelivery.map((item) => ({ price: item.price, quantity: selected[selectionKey(item)] ?? item.defaultQuantity })),
-    discountPercent: discount,
+    discount1Percent: discount1,
+    discount2Percent: discount2,
     vatPercent: 0,
   });
   const offerNumber = editingOfferNumber ?? `OYC/${new Date(offerSeed).getFullYear()}/${String(offerSeed).slice(-6)}`;
-  const discountPending = discount === 0;
+  const discount1Pending = discount1 === 0;
+  const discount2Pending = discount2 === 0;
 
   const selectModel = (id: string) => {
     const next = models.find((item) => item.id === id) ?? models[0];
@@ -299,7 +302,8 @@ export function Configurator() {
     setEditingOfferNumber(null);
     setOfferSeed(Date.now());
     setSelected({});
-    setDiscount(0);
+    setDiscount1(0);
+    setDiscount2(0);
     setCustomer(emptyCustomer);
     setSearch("");
     setCategory("Wszystkie");
@@ -356,10 +360,10 @@ export function Configurator() {
     version,
     excellencePackage: model.excellencePackage,
     selectedOptions: chosenOptions.map((item) => ({ ...item, quantity: selected[selectionKey(item)] ?? item.defaultQuantity })),
-    calculation: { basePrice: version.basePrice, excellence: model.excellencePackage.price, equipmentNet, deliveryNet, discountableSubtotal, subtotal, discountPercent: discount, discountValue, configurationNetAfterDiscount, net, vatPercent: 0, vatValue: 0, gross: net },
+    calculation: { basePrice: version.basePrice, excellence: model.excellencePackage.price, equipmentNet, deliveryNet, yachtPackageNet, discountableSubtotal, subtotal, discount1Percent: discount1, discount2Percent: discount2, discount1Value, discount2Value, discountValue, yachtPackageNetAfterDiscount, equipmentNetAfterDiscount, configurationNetAfterDiscount, net, vatPercent: 0, vatValue: 0, gross: net },
     customer,
   });
-  const offerHtml = () => `<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>${offerNumber}</title><style>body{font-family:Arial;color:#10223f;max-width:900px;margin:40px auto;line-height:1.5}h1{font-family:Georgia;font-size:42px}.gold{color:#a77928}.row{display:flex;justify-content:space-between;gap:30px;border-bottom:1px solid #ddd;padding:10px 0}.row strong{text-align:right}.section{margin-top:24px;padding:9px 0;color:#a77928;font-size:12px;font-weight:700;letter-spacing:.08em;border-bottom:2px solid #a77928}.calculation{margin-top:32px;border-top:2px solid #a77928}.discount{color:#9b3f3f}.total{margin-top:8px;padding:18px 14px;background:#10223f;color:#fff;border:0;font-size:24px;font-weight:700}.notes{margin-top:28px;padding:18px 20px;background:#f5f1e8;border-left:3px solid #a77928;font-size:13px}.notes h3{margin:12px 0 4px;color:#8d6a2d;font-size:13px}.notes h3:first-child{margin-top:0}.notes p{margin:0 0 8px}.muted{color:#687489}img{width:120px}</style></head><body><p class="gold">ODISEJ YACHT CLUB · OFERTA ${offerNumber}</p><h1>${model.name}</h1><p>${version.name}</p><p class="muted">${customer.firstName} ${customer.lastName} · ${customer.company}</p><div class="section">JACHT, PAKIETY I WYPOSAŻENIE — PODLEGA RABATOWI</div>${chosenModelOptions.map((item) => { const quantity = selected[selectionKey(item)] ?? item.defaultQuantity; return `<div class="row"><span>${item.description}${quantity > 1 ? ` × ${quantity}` : ""}</span><strong>${item.price === null ? "Cena na zapytanie" : money(item.price * quantity)}</strong></div>`; }).join("")}${chosenDelivery.length ? `<div class="section">PRZYGOTOWANIE I DOSTAWA — BEZ RABATU</div>${chosenDelivery.map((item) => { const quantity = selected[selectionKey(item)] ?? item.defaultQuantity; return `<div class="row"><span>${item.description}${quantity > 1 ? ` × ${quantity}` : ""}</span><strong>${item.price === null ? "Cena na zapytanie" : money(item.price * quantity)}</strong></div>`; }).join("")}` : ""}<section class="calculation"><div class="row"><span>Jacht, pakiety i konfiguracja (cena katalogowa)</span><strong>${money(discountableSubtotal)}</strong></div><div class="row discount"><span>Indywidualny rabat dealerski${discountPending ? "" : ` (${discount}%)`}</span><strong>${discountPending ? pendingDiscountText : `− ${money(discountValue)}`}</strong></div><div class="row"><span>Cena jachtu po rabacie</span><strong>${money(configurationNetAfterDiscount)}</strong></div><div class="row"><span>Przygotowanie i dostawa</span><strong>${money(deliveryNet)}</strong></div><div class="row"><span>SUMA NETTO</span><strong>${money(net)}</strong></div><div class="row"><span>${vatSettlementLabel}</span><strong></strong></div><div class="row total"><span>CENA OFERTOWA NETTO</span><span>${money(net)}</span></div></section><section class="notes"><h3>Rabat i warunki handlowe:</h3><p>${tradeTermsNote}</p><p>${discountScopeNote}</p><h3>ZASADY ROZLICZENIA PODATKU VAT</h3>${vatSettlementNotes.map((note) => `<p>${note}</p>`).join("")}</section><p class="muted">Oferta ważna po pisemnym potwierdzeniu przez Odisej Yacht Club. Ceny i zakres wyposażenia należy zweryfikować przed zawarciem umowy.</p><img alt="Kod QR oferty" src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(offerNumber)}"></body></html>`;
+  const offerHtml = () => `<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>${offerNumber}</title><style>body{font-family:Arial;color:#10223f;max-width:900px;margin:40px auto;line-height:1.5}h1{font-family:Georgia;font-size:42px}.gold{color:#a77928}.row{display:flex;justify-content:space-between;gap:30px;border-bottom:1px solid #ddd;padding:10px 0}.row strong{text-align:right}.section{margin-top:24px;padding:9px 0;color:#a77928;font-size:12px;font-weight:700;letter-spacing:.08em;border-bottom:2px solid #a77928}.calculation{margin-top:32px;border-top:2px solid #a77928}.discount{color:#9b3f3f}.total{margin-top:8px;padding:18px 14px;background:#10223f;color:#fff;border:0;font-size:24px;font-weight:700}.notes{margin-top:28px;padding:18px 20px;background:#f5f1e8;border-left:3px solid #a77928;font-size:13px}.notes h3{margin:12px 0 4px;color:#8d6a2d;font-size:13px}.notes h3:first-child{margin-top:0}.notes p{margin:0 0 8px}.muted{color:#687489}img{width:120px}</style></head><body><p class="gold">ODISEJ YACHT CLUB · OFERTA ${offerNumber}</p><h1>${model.name}</h1><p>${version.name}</p><p class="muted">${customer.firstName} ${customer.lastName} · ${customer.company}</p><div class="section">WYPOSAŻENIE DODATKOWE</div>${chosenModelOptions.map((item) => { const quantity = selected[selectionKey(item)] ?? item.defaultQuantity; return `<div class="row"><span>${item.description}${quantity > 1 ? ` × ${quantity}` : ""}</span><strong>${item.price === null ? "Cena na zapytanie" : money(item.price * quantity)}</strong></div>`; }).join("")}${chosenDelivery.length ? `<div class="section">PRZYGOTOWANIE I DOSTAWA — BEZ RABATU</div>${chosenDelivery.map((item) => { const quantity = selected[selectionKey(item)] ?? item.defaultQuantity; return `<div class="row"><span>${item.description}${quantity > 1 ? ` × ${quantity}` : ""}</span><strong>${item.price === null ? "Cena na zapytanie" : money(item.price * quantity)}</strong></div>`; }).join("")}` : ""}<section class="calculation"><div class="row"><span>Cena bazowa jachtu i pakiet fabryczny</span><strong>${money(yachtPackageNet)}</strong></div><div class="row discount"><span>Rabat 1${discount1Pending ? "" : ` (${discount1}%)`}</span><strong>${discount1Pending ? pendingDiscountText : `− ${money(discount1Value)}`}</strong></div><div class="row"><span>Jacht i pakiet po rabacie</span><strong>${money(yachtPackageNetAfterDiscount)}</strong></div><div class="row"><span>Wyposażenie dodatkowe</span><strong>${money(equipmentNet)}</strong></div><div class="row discount"><span>Rabat 2${discount2Pending ? "" : ` (${discount2}%)`}</span><strong>${discount2Pending ? pendingDiscountText : `− ${money(discount2Value)}`}</strong></div><div class="row"><span>Wyposażenie po rabacie</span><strong>${money(equipmentNetAfterDiscount)}</strong></div><div class="row"><span>Przygotowanie i dostawa</span><strong>${money(deliveryNet)}</strong></div><div class="row"><span>SUMA NETTO</span><strong>${money(net)}</strong></div><div class="row"><span>${vatSettlementLabel}</span><strong></strong></div><div class="row total"><span>CENA OFERTOWA NETTO</span><span>${money(net)}</span></div></section><section class="notes"><h3>Rabat i warunki handlowe:</h3><p>${tradeTermsNote}</p><p>${discountScopeNote}</p><h3>ZASADY ROZLICZENIA PODATKU VAT</h3>${vatSettlementNotes.map((note) => `<p>${note}</p>`).join("")}</section><p class="muted">Oferta ważna po pisemnym potwierdzeniu przez Odisej Yacht Club. Ceny i zakres wyposażenia należy zweryfikować przed zawarciem umowy.</p><img alt="Kod QR oferty" src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(offerNumber)}"></body></html>`;
   const saveOffer = () => {
     const record: HistoryOffer = {
       number: offerNumber,
@@ -392,11 +396,20 @@ export function Configurator() {
     const pdfVersion = payload?.version.name ?? historyItem?.version ?? version.name;
     const pdfCustomer = payload?.customer ?? (historyItem ? { ...emptyCustomer, firstName: historyItem.customer, email: historyItem.customerEmail ?? "" } : customer);
     const pdfOptions = payload?.selectedOptions ?? (historyItem ? [] : chosenOptions.map((item) => ({ ...item, quantity: selected[selectionKey(item)] ?? item.defaultQuantity })));
-    const calculation = payload?.calculation ?? (historyItem ? { basePrice: 0, excellence: 0, equipmentNet: 0, deliveryNet: 0, discountableSubtotal: historyItem.total, subtotal: historyItem.total, discountPercent: 0, discountValue: 0, configurationNetAfterDiscount: historyItem.total, net: historyItem.total, vatPercent: 0, vatValue: 0, gross: historyItem.total } : { basePrice: version.basePrice, excellence: model.excellencePackage.price, equipmentNet, deliveryNet, discountableSubtotal, subtotal, discountPercent: discount, discountValue, configurationNetAfterDiscount, net, vatPercent: 0, vatValue: 0, gross: net });
+    const calculation = payload?.calculation ?? (historyItem ? { basePrice: 0, excellence: 0, equipmentNet: 0, deliveryNet: 0, yachtPackageNet: historyItem.total, discountableSubtotal: historyItem.total, subtotal: historyItem.total, discount1Percent: 0, discount2Percent: 0, discount1Value: 0, discount2Value: 0, yachtPackageNetAfterDiscount: historyItem.total, equipmentNetAfterDiscount: 0, configurationNetAfterDiscount: historyItem.total, net: historyItem.total, vatPercent: 0, vatValue: 0, gross: historyItem.total } : { basePrice: version.basePrice, excellence: model.excellencePackage.price, equipmentNet, deliveryNet, yachtPackageNet, discountableSubtotal, subtotal, discount1Percent: discount1, discount2Percent: discount2, discount1Value, discount2Value, yachtPackageNetAfterDiscount, equipmentNetAfterDiscount, configurationNetAfterDiscount, net, vatPercent: 0, vatValue: 0, gross: net });
     const pdfDeliveryNet = calculation.deliveryNet ?? 0;
-    const pdfDiscountableSubtotal = calculation.discountableSubtotal ?? Math.max((calculation.subtotal ?? 0) - pdfDeliveryNet, 0);
-    const pdfConfigurationNetAfterDiscount = calculation.configurationNetAfterDiscount ?? pdfDiscountableSubtotal - (calculation.discountValue ?? 0);
-    const pdfDiscountPending = (calculation.discountPercent ?? 0) === 0;
+    const pdfEquipmentNet = calculation.equipmentNet ?? 0;
+    const pdfYachtPackageNet = calculation.yachtPackageNet ?? (calculation.basePrice ?? 0) + (calculation.excellence ?? 0);
+    const legacyDiscount = calculation.discountPercent ?? 0;
+    const pdfDiscount1Percent = calculation.discount1Percent ?? legacyDiscount;
+    const pdfDiscount2Percent = calculation.discount2Percent ?? legacyDiscount;
+    const pdfDiscount1Value = calculation.discount1Value ?? pdfYachtPackageNet * pdfDiscount1Percent / 100;
+    const pdfDiscount2Value = calculation.discount2Value ?? pdfEquipmentNet * pdfDiscount2Percent / 100;
+    const pdfYachtPackageNetAfterDiscount = calculation.yachtPackageNetAfterDiscount ?? pdfYachtPackageNet - pdfDiscount1Value;
+    const pdfEquipmentNetAfterDiscount = calculation.equipmentNetAfterDiscount ?? pdfEquipmentNet - pdfDiscount2Value;
+    const pdfConfigurationNetAfterDiscount = calculation.configurationNetAfterDiscount ?? pdfYachtPackageNetAfterDiscount + pdfEquipmentNetAfterDiscount;
+    const pdfDiscount1Pending = pdfDiscount1Percent === 0;
+    const pdfDiscount2Pending = pdfDiscount2Percent === 0;
     const priceRows: Array<Array<string | { text: string; bold?: boolean; color?: string; alignment?: "right" }>> = [];
 
     if (!historyItem || payload) {
@@ -446,9 +459,12 @@ export function Configurator() {
         ] }, layout: "lightHorizontalLines", margin: [0, 5, 0, 22] },
         { text: "PODSUMOWANIE CENOWE", style: "section" },
         { table: { widths: ["*", 150], body: [
-          ["Jacht, pakiety i konfiguracja (cena katalogowa)", { text: money(pdfDiscountableSubtotal), alignment: "right" }],
-          [{ text: `Indywidualny rabat dealerski${pdfDiscountPending ? "" : ` (${calculation.discountPercent}%)`}`, color: "#9b3f3f" }, { text: pdfDiscountPending ? pendingDiscountText : `- ${money(calculation.discountValue ?? 0)}`, alignment: "right", color: "#9b3f3f", fontSize: pdfDiscountPending ? 7 : 9 }],
-          ["Cena jachtu po rabacie", { text: money(pdfConfigurationNetAfterDiscount), alignment: "right", bold: true }],
+          ["Cena bazowa jachtu i pakiet fabryczny", { text: money(pdfYachtPackageNet), alignment: "right" }],
+          [{ text: `Rabat 1${pdfDiscount1Pending ? "" : ` (${pdfDiscount1Percent}%)`}`, color: "#9b3f3f" }, { text: pdfDiscount1Pending ? pendingDiscountText : `- ${money(pdfDiscount1Value)}`, alignment: "right", color: "#9b3f3f", fontSize: pdfDiscount1Pending ? 7 : 9 }],
+          ["Jacht i pakiet po rabacie", { text: money(pdfYachtPackageNetAfterDiscount), alignment: "right", bold: true }],
+          ["Wyposażenie dodatkowe", { text: money(pdfEquipmentNet), alignment: "right" }],
+          [{ text: `Rabat 2${pdfDiscount2Pending ? "" : ` (${pdfDiscount2Percent}%)`}`, color: "#9b3f3f" }, { text: pdfDiscount2Pending ? pendingDiscountText : `- ${money(pdfDiscount2Value)}`, alignment: "right", color: "#9b3f3f", fontSize: pdfDiscount2Pending ? 7 : 9 }],
+          ["Wyposażenie po rabacie", { text: money(pdfEquipmentNetAfterDiscount), alignment: "right", bold: true }],
           ["Przygotowanie i dostawa", { text: money(pdfDeliveryNet), alignment: "right", bold: true }],
           ["SUMA NETTO", { text: money(calculation.net ?? 0), alignment: "right", bold: true }],
           [{ text: vatSettlementLabel }, ""],
@@ -592,6 +608,11 @@ export function Configurator() {
     const savedModel = models.find((candidate) => candidate.name === payload.model);
     const excellence = payload.excellencePackage as Model["excellencePackage"] | undefined;
     const payloadDate = typeof payload.date === "string" ? payload.date : "";
+    const legacyDiscount = payload.calculation.discountPercent ?? 0;
+    const contractYachtPackageNet = payload.calculation.yachtPackageNet ?? (payload.calculation.basePrice ?? payload.version.basePrice) + (payload.calculation.excellence ?? excellence?.price ?? 0);
+    const contractEquipmentNet = payload.calculation.equipmentNet ?? 0;
+    const contractDiscount1Percent = payload.calculation.discount1Percent ?? legacyDiscount;
+    const contractDiscount2Percent = payload.calculation.discount2Percent ?? legacyDiscount;
     return {
       offerNumber: item.number,
       contractNumber: contractNumberForOffer(item.number),
@@ -607,7 +628,11 @@ export function Configurator() {
       basePrice: payload.calculation.basePrice ?? payload.version.basePrice,
       excellenceName: excellence?.name ?? savedModel?.excellencePackage.name ?? "Pakiet Excellence",
       excellencePrice: payload.calculation.excellence ?? excellence?.price ?? 0,
-      options: payload.selectedOptions,
+      options: payload.selectedOptions.filter((item) => displayCategory(item.category) !== "Dostawa"),
+      discount1Percent: contractDiscount1Percent,
+      discount2Percent: contractDiscount2Percent,
+      discount1Value: payload.calculation.discount1Value ?? contractYachtPackageNet * contractDiscount1Percent / 100,
+      discount2Value: payload.calculation.discount2Value ?? contractEquipmentNet * contractDiscount2Percent / 100,
       yachtNet: payload.calculation.configurationNetAfterDiscount ?? Math.max(payload.calculation.net - (payload.calculation.deliveryNet ?? 0), 0),
       deliveryNet: payload.calculation.deliveryNet ?? 0,
       totalNet: payload.calculation.net,
@@ -664,7 +689,8 @@ export function Configurator() {
       setModelId(savedModel.id);
       setVersionId(savedModel.versions[0].id);
       setSelected({});
-      setDiscount(0);
+      setDiscount1(0);
+      setDiscount2(0);
       setCustomer({ ...emptyCustomer, firstName, lastName: lastNameParts.join(" "), email: item.customerEmail ?? "" });
       setEditingOfferNumber(item.number);
       setSearch("");
@@ -685,7 +711,9 @@ export function Configurator() {
     setModelId(savedModel.id);
     setVersionId(savedVersion.id);
     setSelected(Object.fromEntries(item.payload.selectedOptions.map((option) => [selectionKey(option), option.quantity])));
-    setDiscount(item.payload.calculation.discountPercent ?? 0);
+    const legacyDiscount = item.payload.calculation.discountPercent ?? 0;
+    setDiscount1(item.payload.calculation.discount1Percent ?? legacyDiscount);
+    setDiscount2(item.payload.calculation.discount2Percent ?? legacyDiscount);
     setCustomer({ ...emptyCustomer, ...item.payload.customer });
     setEditingOfferNumber(item.number);
     setSearch("");
@@ -755,18 +783,22 @@ export function Configurator() {
             <div className="summary-layout">
               <div className="summary-sheet">
                 <h3>{model.name}</h3><p>{version.name}</p>
-                <div className="price-section-label">PODLEGA RABATOWI</div>
+                <div className="price-section-label">RABAT 1 — JACHT I PAKIET</div>
                 <PriceRow label="Cena bazowa" value={version.basePrice}/>
                 <PriceRow label={model.excellencePackage.name} value={model.excellencePackage.price}/>
+                <div className="price-section-label">RABAT 2 — WYPOSAŻENIE DODATKOWE</div>
                 {chosenModelOptions.map((item) => { const quantity = selected[selectionKey(item)] ?? item.defaultQuantity; return <PriceRow key={item.id} label={`${item.description}${quantity > 1 ? ` × ${quantity}` : ""}`} value={item.price === null ? null : item.price * quantity}/>; })}
                 {chosenDelivery.length > 0 && <><div className="price-section-label no-discount">PRZYGOTOWANIE I DOSTAWA — BEZ RABATU</div>{chosenDelivery.map((item) => { const quantity = selected[selectionKey(item)] ?? item.defaultQuantity; return <PriceRow key={item.id} label={`${item.description}${quantity > 1 ? ` × ${quantity}` : ""}`} value={item.price === null ? null : item.price * quantity}/>; })}</>}
               </div>
               <div className="calculation-card">
-                {clientMode ? <div className="client-pricing-note"><strong>WARUNKI HANDLOWE USTALA DEALER</strong><span>Cena katalogowa nie zawiera indywidualnego rabatu dealerskiego. Ostateczne warunki potwierdzi Odisej Yacht Club.</span></div> : <label>Rabat handlowy <span><input type="number" min="0" max="100" value={discount} onChange={(e) => setDiscount(Number(e.target.value))}/>%</span></label>}
+                {clientMode ? <div className="client-pricing-note"><strong>WARUNKI HANDLOWE USTALA DEALER</strong><span>Cena katalogowa nie zawiera indywidualnych rabatów dealerskich. Ostateczne warunki potwierdzi Odisej Yacht Club.</span></div> : <div className="discount-inputs"><label>Rabat 1 <small>jacht + pakiet</small><span><input type="number" min="0" max="100" value={discount1} onChange={(e) => setDiscount1(Number(e.target.value))}/>%</span></label><label>Rabat 2 <small>wyposażenie dodatkowe</small><span><input type="number" min="0" max="100" value={discount2} onChange={(e) => setDiscount2(Number(e.target.value))}/>%</span></label></div>}
                 <dl>
-                  <div><dt>Jacht, pakiety i konfiguracja (cena katalogowa)</dt><dd>{money(discountableSubtotal)}</dd></div>
-                  <div className="discount-summary-row"><dt>Indywidualny rabat dealerski{discountPending ? "" : ` (${discount}%)`}</dt><dd>{discountPending ? pendingDiscountText : `− ${money(discountValue)}`}</dd></div>
-                  <div><dt>Cena jachtu po rabacie</dt><dd>{money(configurationNetAfterDiscount)}</dd></div>
+                  <div><dt>Cena bazowa jachtu i pakiet fabryczny</dt><dd>{money(yachtPackageNet)}</dd></div>
+                  <div className="discount-summary-row"><dt>Rabat 1{discount1Pending ? "" : ` (${discount1}%)`}</dt><dd>{discount1Pending ? pendingDiscountText : `− ${money(discount1Value)}`}</dd></div>
+                  <div><dt>Jacht i pakiet po rabacie</dt><dd>{money(yachtPackageNetAfterDiscount)}</dd></div>
+                  <div><dt>Wyposażenie dodatkowe</dt><dd>{money(equipmentNet)}</dd></div>
+                  <div className="discount-summary-row"><dt>Rabat 2{discount2Pending ? "" : ` (${discount2}%)`}</dt><dd>{discount2Pending ? pendingDiscountText : `− ${money(discount2Value)}`}</dd></div>
+                  <div><dt>Wyposażenie po rabacie</dt><dd>{money(equipmentNetAfterDiscount)}</dd></div>
                   <div className="no-discount-row"><dt>Przygotowanie i dostawa</dt><dd>{money(deliveryNet)}</dd></div>
                   <div><dt>SUMA NETTO</dt><dd>{money(net)}</dd></div>
                   <div><dt>{vatSettlementLabel}</dt><dd></dd></div>

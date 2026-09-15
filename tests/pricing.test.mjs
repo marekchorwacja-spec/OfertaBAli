@@ -16,13 +16,16 @@ test("delivery is never discounted for any BALI price list", () => {
       excellencePrice: model.excellencePackage.price,
       options: option ? [{ price: option.price, quantity: 1 }] : [],
       delivery: [{ price: delivery.price, quantity: 1 }],
-      discountPercent: 10,
+      discount1Percent: 10,
+      discount2Percent: 20,
       vatPercent: 23,
     });
-    const discountable = version.basePrice + model.excellencePackage.price + (option?.price ?? 0);
+    const yachtAndPackage = version.basePrice + model.excellencePackage.price;
+    const equipment = option?.price ?? 0;
 
-    assert.equal(result.discountValue, discountable * 0.1, `${model.name}: incorrect discount base`);
-    assert.equal(result.net, discountable * 0.9 + delivery.price, `${model.name}: delivery was discounted`);
+    assert.equal(result.discount1Value, yachtAndPackage * 0.1, `${model.name}: incorrect yacht/package discount`);
+    assert.equal(result.discount2Value, equipment * 0.2, `${model.name}: incorrect equipment discount`);
+    assert.equal(result.net, yachtAndPackage * 0.9 + equipment * 0.8 + delivery.price, `${model.name}: delivery was discounted`);
     assert.equal(result.deliveryNet, delivery.price, `${model.name}: delivery value changed`);
   }
 });
@@ -33,7 +36,8 @@ test("discount and VAT inputs are safely bounded", () => {
     excellencePrice: 0,
     options: [],
     delivery: [{ price: 25, quantity: 1 }],
-    discountPercent: 150,
+    discount1Percent: 150,
+    discount2Percent: -15,
     vatPercent: -10,
   });
 

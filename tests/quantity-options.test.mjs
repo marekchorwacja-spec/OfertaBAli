@@ -31,7 +31,8 @@ test("a quantity of four multiplies the unit price by four", () => {
     excellencePrice: 0,
     options: [{ price: unitPrice, quantity: 4 }],
     delivery: [],
-    discountPercent: 0,
+    discount1Percent: 0,
+    discount2Percent: 0,
     vatPercent: 0,
   });
 

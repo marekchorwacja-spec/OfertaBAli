@@ -8,7 +8,8 @@ type OfferPricingInput = {
   excellencePrice: number;
   options: PricedSelection[];
   delivery: PricedSelection[];
-  discountPercent: number;
+  discount1Percent: number;
+  discount2Percent: number;
   vatPercent: number;
 };
 
@@ -20,12 +21,18 @@ const selectionTotal = (items: PricedSelection[]) => items.reduce(
 export function calculateOfferPricing(input: OfferPricingInput) {
   const equipmentNet = selectionTotal(input.options);
   const deliveryNet = selectionTotal(input.delivery);
-  const discountableSubtotal = input.basePrice + input.excellencePrice + equipmentNet;
+  const yachtPackageNet = input.basePrice + input.excellencePrice;
+  const discountableSubtotal = yachtPackageNet + equipmentNet;
   const subtotal = discountableSubtotal + deliveryNet;
-  const safeDiscount = Math.min(Math.max(input.discountPercent, 0), 100);
+  const safeDiscount1 = Math.min(Math.max(input.discount1Percent, 0), 100);
+  const safeDiscount2 = Math.min(Math.max(input.discount2Percent, 0), 100);
   const safeVat = Math.min(Math.max(input.vatPercent, 0), 100);
-  const discountValue = discountableSubtotal * safeDiscount / 100;
-  const configurationNetAfterDiscount = discountableSubtotal - discountValue;
+  const discount1Value = yachtPackageNet * safeDiscount1 / 100;
+  const discount2Value = equipmentNet * safeDiscount2 / 100;
+  const discountValue = discount1Value + discount2Value;
+  const yachtPackageNetAfterDiscount = yachtPackageNet - discount1Value;
+  const equipmentNetAfterDiscount = equipmentNet - discount2Value;
+  const configurationNetAfterDiscount = yachtPackageNetAfterDiscount + equipmentNetAfterDiscount;
   const net = configurationNetAfterDiscount + deliveryNet;
   const vatValue = net * safeVat / 100;
   const gross = net + vatValue;
@@ -33,9 +40,14 @@ export function calculateOfferPricing(input: OfferPricingInput) {
   return {
     equipmentNet,
     deliveryNet,
+    yachtPackageNet,
     discountableSubtotal,
     subtotal,
+    discount1Value,
+    discount2Value,
     discountValue,
+    yachtPackageNetAfterDiscount,
+    equipmentNetAfterDiscount,
     configurationNetAfterDiscount,
     net,
     vatValue,
