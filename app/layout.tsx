@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Lato } from "next/font/google";
 import "./globals.css";
 import "./quantity-controls.css";
+import "./contract-generator.css";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 

@@ -6,6 +6,7 @@ import type { TDocumentDefinitions } from "pdfmake/interfaces";
 import catalog from "@/data/models.json";
 import { calculateOfferPricing } from "@/lib/pricing";
 import { hasConfigurableQuantity } from "@/lib/options";
+import { buildContractPdfDefinition, contractNumberForOffer, createContractDraft, type BuyerType, type ContractDraft, type ContractOfferData } from "@/lib/contract";
 
 type Version = { id: string; name: string; basePrice: number; standardEngines: string };
 type Option = {
@@ -29,9 +30,12 @@ type Model = {
   sourceSheet: string;
 };
 type Customer = {
+  buyerType: BuyerType;
   firstName: string;
   lastName: string;
   company: string;
+  address: string;
+  identifier: string;
   phone: string;
   email: string;
   country: string;
@@ -62,6 +66,8 @@ type HistoryOffer = {
   date: string;
   html?: string;
   payload?: OfferPayloadSnapshot;
+  status?: "draft" | "accepted";
+  acceptedAt?: string;
 };
 
 const models = catalog.models as Model[];
@@ -139,7 +145,7 @@ const cabinCount = (version: Version) => Number(version.name.match(/(\d+)\s*-?\s
 const cabinLabel = (count: number) => `${count} ${count >= 2 && count <= 4 ? "kabiny" : "kabin"}`;
 const cabinVersions = (item: Model) => Array.from(new Map(item.versions.map((itemVersion) => [cabinCount(itemVersion), itemVersion])).values());
 const emptyCustomer: Customer = {
-  firstName: "", lastName: "", company: "", phone: "", email: "", country: "Polska",
+  buyerType: "b2c", firstName: "", lastName: "", company: "", address: "", identifier: "", phone: "", email: "", country: "Polska",
   deliveryPort: "", yachtName: "", notes: "",
 };
 const eur = new Intl.NumberFormat("pl-PL", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
@@ -183,6 +189,15 @@ function downloadBlob(name: string, blob: Blob) {
   window.setTimeout(() => URL.revokeObjectURL(link.href), 1000);
 }
 
+function blobToDataUrl(blob: Blob) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
 export function Configurator() {
   const [step, setStep] = useState(0);
   const [clientMode, setClientMode] = useState(false);
@@ -214,9 +229,12 @@ export function Configurator() {
     return savedOffers.map((item: HistoryOffer) => ({
       ...item,
       number: item.number.replace(/^OY\//, "OYC/"),
+      status: item.status ?? "draft",
     }));
   });
   const [historyPreview, setHistoryPreview] = useState<HistoryOffer | null>(null);
+  const [contractOffer, setContractOffer] = useState<HistoryOffer | null>(null);
+  const [contractDraft, setContractDraft] = useState<ContractDraft>(() => createContractDraft());
   const [toast, setToast] = useState("");
 
   useEffect(() => {
@@ -295,7 +313,7 @@ export function Configurator() {
     ...current,
     [selectionKey(item)]: Math.min(99, Math.max(0, Math.trunc(Number.isFinite(quantity) ? quantity : 0))),
   }));
-  const updateCustomer = (field: keyof Customer, value: string) => setCustomer((current) => ({ ...current, [field]: value }));
+  const updateCustomer = <K extends keyof Customer>(field: K, value: Customer[K]) => setCustomer((current) => ({ ...current, [field]: value }));
   const showToast = (message: string) => { setToast(message); window.setTimeout(() => setToast(""), 2600); };
   const clientConfiguratorUrl = (item: Model) => {
     const url = new URL(publicConfiguratorUrl);
@@ -353,6 +371,7 @@ export function Configurator() {
       date: new Date().toLocaleDateString("pl-PL"),
       html: offerHtml(),
       payload: offerPayload(),
+      status: "draft",
     };
     const next = [record, ...history.filter((item) => item.number !== record.number)].slice(0, 50);
     setHistory(next);
@@ -538,6 +557,86 @@ export function Configurator() {
   };
 
   const historyNetTotal = (item: HistoryOffer) => item.payload?.calculation.net ?? item.total;
+  const setOfferAcceptance = (item: HistoryOffer, accepted: boolean) => {
+    const updated = { ...item, status: accepted ? "accepted" as const : "draft" as const, acceptedAt: accepted ? new Date().toISOString() : undefined };
+    const next = history.map((candidate) => candidate.number === item.number ? updated : candidate);
+    setHistory(next);
+    localStorage.setItem("oyc-offers", JSON.stringify(next));
+    if (historyPreview?.number === item.number) setHistoryPreview(updated);
+    showToast(accepted ? `Oferta ${item.number} została zaakceptowana` : `Cofnięto akceptację oferty ${item.number}`);
+  };
+  const openContractGenerator = (item: HistoryOffer) => {
+    if (item.status !== "accepted") {
+      showToast("Umowę można wygenerować dopiero po zaakceptowaniu oferty");
+      return;
+    }
+    if (!item.payload) {
+      showToast("Starsza oferta nie zawiera pełnej konfiguracji wymaganej do umowy");
+      return;
+    }
+    setContractOffer(item);
+    setContractDraft(createContractDraft({
+      buyerType: item.payload.customer.buyerType ?? (item.payload.customer.company ? "b2b" : "b2c"),
+      customerAddress: item.payload.customer.address,
+      customerId: item.payload.customer.identifier,
+      deliveryPort: item.payload.customer.deliveryPort,
+      destinationCountry: item.payload.customer.country,
+    }));
+    setHistoryPreview(null);
+    setAdminOpen(false);
+  };
+  const updateContractDraft = (field: keyof ContractDraft, value: string) => setContractDraft((current) => ({ ...current, [field]: value }));
+  const contractDataForOffer = (item: HistoryOffer): ContractOfferData | null => {
+    if (!item.payload) return null;
+    const payload = item.payload;
+    const savedModel = models.find((candidate) => candidate.name === payload.model);
+    const excellence = payload.excellencePackage as Model["excellencePackage"] | undefined;
+    const payloadDate = typeof payload.date === "string" ? payload.date : "";
+    return {
+      offerNumber: item.number,
+      contractNumber: contractNumberForOffer(item.number),
+      offerDate: payloadDate ? new Date(payloadDate).toLocaleDateString("pl-PL") : item.date,
+      model: payload.model,
+      version: payload.version.name,
+      engines: payload.version.standardEngines,
+      customerName: `${payload.customer.firstName} ${payload.customer.lastName}`.trim(),
+      customerCompany: payload.customer.company,
+      customerEmail: payload.customer.email,
+      customerPhone: payload.customer.phone,
+      yachtName: payload.customer.yachtName,
+      basePrice: payload.calculation.basePrice ?? payload.version.basePrice,
+      excellenceName: excellence?.name ?? savedModel?.excellencePackage.name ?? "Pakiet Excellence",
+      excellencePrice: payload.calculation.excellence ?? excellence?.price ?? 0,
+      options: payload.selectedOptions,
+      yachtNet: payload.calculation.configurationNetAfterDiscount ?? Math.max(payload.calculation.net - (payload.calculation.deliveryNet ?? 0), 0),
+      deliveryNet: payload.calculation.deliveryNet ?? 0,
+      totalNet: payload.calculation.net,
+    };
+  };
+  const downloadContract = async () => {
+    if (!contractOffer) return;
+    const contractData = contractDataForOffer(contractOffer);
+    if (!contractData) return showToast("Brak pełnych danych oferty do wygenerowania umowy");
+    if (!contractDraft.customerAddress.trim() || !contractDraft.customerId.trim()) {
+      showToast("Uzupełnij adres oraz identyfikator Kupującego");
+      return;
+    }
+    showToast("Generowanie umowy PDF…");
+    try {
+      const [{ default: pdfMake }, { default: pdfFonts }] = await Promise.all([
+        import("pdfmake/build/pdfmake"),
+        import("pdfmake/build/vfs_fonts"),
+      ]);
+      pdfMake.addVirtualFileSystem(pdfFonts);
+      const logoResponse = await fetch(publicAsset("/images/odisej-yacht-club-contract-logo.png"));
+      const logoDataUrl = logoResponse.ok ? await blobToDataUrl(await logoResponse.blob()) : undefined;
+      const blob = await pdfMake.createPdf(buildContractPdfDefinition(contractData, contractDraft, logoDataUrl)).getBlob();
+      downloadBlob(`${contractData.contractNumber.replaceAll("/", "-")}.pdf`, blob);
+      showToast("Umowa PDF została pobrana");
+    } catch {
+      showToast("Nie udało się wygenerować umowy PDF");
+    }
+  };
   const historyDocument = (item: HistoryOffer) => {
     if (!item.html) return `<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>${item.number}</title><style>body{font-family:Arial;color:#10223f;max-width:800px;margin:50px auto;line-height:1.6}.gold{color:#a77928}dl{border-top:1px solid #ddd}div{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #ddd}</style></head><body><p class="gold">ODISEJ YACHT CLUB · ARCHIWUM OFERT</p><h1>${item.number}</h1><dl><div><dt>Klient</dt><dd>${item.customer}</dd></div><div><dt>Model</dt><dd>${item.model}</dd></div><div><dt>Cena ofertowa netto</dt><dd>${money(historyNetTotal(item))}</dd></div><div><dt>Data</dt><dd>${item.date}</dd></div></dl><p>Ta pozycja pochodzi ze starszej wersji historii i zawiera jedynie dane podsumowujące.</p></body></html>`;
     const netTotal = money(historyNetTotal(item));
@@ -685,7 +784,14 @@ export function Configurator() {
             <StepFooter price={net} offerNet onNext={() => setStep(5)}/>
           </section>}
 
-          {step === 5 && <section className="content-stage narrow"><SectionHead eyebrow="Krok 5" title="Dane klienta" text={clientMode ? "Podaj dane kontaktowe, aby przesłać wybraną konfigurację do Odisej Yacht Club." : "Dane zostaną umieszczone na spersonalizowanej ofercie."}/><form className="customer-form" onSubmit={(e) => { e.preventDefault(); saveOffer(); setStep(6); }}><div className="field-grid"><Field label="Imię" required value={customer.firstName} onChange={(v) => updateCustomer("firstName", v)}/><Field label="Nazwisko" required value={customer.lastName} onChange={(v) => updateCustomer("lastName", v)}/><Field label="Firma" value={customer.company} onChange={(v) => updateCustomer("company", v)}/><Field label="Telefon" value={customer.phone} onChange={(v) => updateCustomer("phone", v)}/><Field label="E-mail" type="email" required value={customer.email} onChange={(v) => updateCustomer("email", v)}/><Field label="Kraj" value={customer.country} onChange={(v) => updateCustomer("country", v)}/><Field label="Port odbioru" value={customer.deliveryPort} onChange={(v) => updateCustomer("deliveryPort", v)}/><Field label="Nazwa jachtu" value={customer.yachtName} onChange={(v) => updateCustomer("yachtName", v)}/></div><label className="textarea-field">Uwagi<textarea rows={5} value={customer.notes} onChange={(e) => updateCustomer("notes", e.target.value)} placeholder="Termin odbioru, sposób finansowania, dodatkowe informacje…"/></label><button className="primary form-submit" type="submit">{clientMode ? "Zakończ konfigurację →" : "Przygotuj ofertę →"}</button></form></section>}
+          {step === 5 && <section className="content-stage narrow">
+            <SectionHead eyebrow="Krok 5" title="Dane klienta" text={clientMode ? "Podaj dane kontaktowe, aby przesłać wybraną konfigurację do Odisej Yacht Club." : "Dane zostaną umieszczone na spersonalizowanej ofercie i automatycznie przeniesione do umowy."}/>
+            <form className="customer-form" onSubmit={(e) => { e.preventDefault(); saveOffer(); setStep(6); }}>
+              <label className="field">Rodzaj nabywcy<select value={customer.buyerType} onChange={(e) => updateCustomer("buyerType", e.target.value as BuyerType)}><option value="b2c">B2C - osoba prywatna</option><option value="b2b">B2B - firma</option></select></label>
+              <div className="field-grid"><Field label="Imię" required value={customer.firstName} onChange={(v) => updateCustomer("firstName", v)}/><Field label="Nazwisko" required value={customer.lastName} onChange={(v) => updateCustomer("lastName", v)}/><Field label="Firma" required={customer.buyerType === "b2b"} value={customer.company} onChange={(v) => updateCustomer("company", v)}/><Field label={customer.buyerType === "b2c" ? "PESEL / numer dokumentu" : "NIP / VAT UE"} value={customer.identifier} onChange={(v) => updateCustomer("identifier", v)}/><Field label="Adres" value={customer.address} onChange={(v) => updateCustomer("address", v)}/><Field label="Telefon" value={customer.phone} onChange={(v) => updateCustomer("phone", v)}/><Field label="E-mail" type="email" required value={customer.email} onChange={(v) => updateCustomer("email", v)}/><Field label="Kraj" value={customer.country} onChange={(v) => updateCustomer("country", v)}/><Field label="Port odbioru" value={customer.deliveryPort} onChange={(v) => updateCustomer("deliveryPort", v)}/><Field label="Nazwa jachtu" value={customer.yachtName} onChange={(v) => updateCustomer("yachtName", v)}/></div>
+              <label className="textarea-field">Uwagi<textarea rows={5} value={customer.notes} onChange={(e) => updateCustomer("notes", e.target.value)} placeholder="Termin odbioru, sposób finansowania, dodatkowe informacje…"/></label><button className="primary form-submit" type="submit">{clientMode ? "Zakończ konfigurację →" : "Przygotuj ofertę →"}</button>
+            </form>
+          </section>}
 
           {step === 6 && <section className="content-stage offer-ready"><div className="success-mark">✓</div><p className="eyebrow">{clientMode ? "KONFIGURACJA KLIENTA GOTOWA" : editingOfferNumber ? "OFERTA ZAKTUALIZOWANA" : "OFERTA GOTOWA"}</p><h2>{model.name} czeka na swojego właściciela.</h2><p>{clientMode ? <>Konfiguracja <b>{offerNumber}</b> jest gotowa. Prześlij ją do Odisej Yacht Club, aby otrzymać potwierdzenie ceny i indywidualne warunki handlowe.</> : <>Oferta <b>{offerNumber}</b> dla {customer.firstName} {customer.lastName} została przygotowana. Wybierz sposób przekazania dokumentu.</>}</p><div className="offer-card"><div><span>CENA OFERTOWA NETTO</span><strong>{money(net)}</strong><small>{chosenOptions.length} opcji · {version.name}</small></div><div className="qr">OYC<small>QR</small></div></div><div className="offer-actions">{clientMode ? <button className="primary" onClick={() => void sendConfigurationToDealer()}>Wyślij konfigurację do OYC</button> : <button className="primary" onClick={() => void sendEmail()}>Wyślij z załącznikiem PDF</button>}<button onClick={() => void downloadPdf()}>Pobierz PDF</button>{currentBrochure && <a className="brochure-download-button" href={currentBrochure.pdf} download>Pobierz katalog</a>}{!clientMode && <><button onClick={exportHtml}>Pobierz HTML</button><button onClick={exportJson}>Pobierz JSON</button></>}</div>{!clientMode && <button className="text-button" onClick={startNewOffer}>Utwórz nową konfigurację</button>}</section>}
         </>
@@ -693,8 +799,35 @@ export function Configurator() {
 
       {compareOpen && <Modal title="Porównanie modeli" onClose={() => setCompareOpen(false)}><div className="compare-picker">{models.map((item) => <label key={item.id}><input type="checkbox" checked={compareIds.includes(item.id)} onChange={() => setCompareIds((ids) => ids.includes(item.id) ? ids.filter((id) => id !== item.id) : ids.length < 3 ? [...ids, item.id] : ids)}/>{item.name}</label>)}</div>{compareIds.length ? <div className="compare-table"><div/><b>Cena</b><b>Wersja kabinowa</b><b>Silniki standardowe</b>{compareIds.map((id) => { const item = models.find((candidate) => candidate.id === id)!; const availableCabinVersions = cabinVersions(item); const selectedCabinVersion = availableCabinVersions.find((itemVersion) => itemVersion.id === compareVersions[id]) ?? availableCabinVersions[0]; return <div className="compare-column" key={id}><h3>{item.name}</h3><span>{money(selectedCabinVersion.basePrice)}</span><span><select aria-label={`Wersja kabinowa ${item.name}`} value={selectedCabinVersion.id} onChange={(event) => setCompareVersions((current) => ({ ...current, [id]: event.target.value }))}>{availableCabinVersions.map((itemVersion) => <option value={itemVersion.id} key={itemVersion.id}>{cabinLabel(cabinCount(itemVersion))}</option>)}</select></span><span>{selectedCabinVersion.standardEngines}</span></div>; })}</div> : <p className="empty">Wybierz maksymalnie trzy modele do porównania.</p>}</Modal>}
       {brochuresOpen && <Modal title="Kolekcja BALI" onClose={() => setBrochuresOpen(false)}><p className="brochure-intro">Poznaj całą gamę katamaranów BALI. Otwórz katalog w przeglądarce albo pobierz go na urządzenie.</p><div className="brochure-grid">{brochures.map((item) => <article className={item.release ? "brochure-card future-brochure" : "brochure-card"} key={item.model}><div className="brochure-cover"><Image src={item.cover} alt={`Okładka katalogu ${item.model}`} fill sizes="(max-width: 720px) 80vw, (max-width: 1100px) 40vw, 280px" unoptimized/>{item.release && <span className="brochure-release">{item.release}</span>}</div><div className="brochure-info"><p>KATALOG PREMIUM · {item.pages} STRON</p><h3>{item.model}</h3><div><a href={item.pdf} target="_blank" rel="noreferrer">Otwórz katalog <span>↗</span></a><a href={item.pdf} download>Pobierz PDF <span>↓</span></a></div></div></article>)}</div></Modal>}
-      {adminOpen && <Modal title="Panel administratora" onClose={() => setAdminOpen(false)}><div className="admin-kpis"><div><strong>{models.length}</strong><span>modeli</span></div><div><strong>{models.reduce((sum, item) => sum + item.options.length + item.delivery.length, 0)}</strong><span>pozycji cenowych</span></div><div><strong>{history.length}</strong><span>zapisanych ofert</span></div></div><div className="admin-actions"><label>Wybierz nowy Excel<input type="file" accept=".xlsx,.xls" onChange={(e) => e.target.files?.[0] && showToast(`Wybrano ${e.target.files[0].name}. Plik oczekuje na walidację i publikację katalogu.`)}/></label><button onClick={() => download("katalog-bali-a-2026.json", JSON.stringify(catalog, null, 2), "application/json")}>Eksport danych katalogu</button></div><h3>Konfiguratory dla klientów</h3><p className="admin-section-intro">Wyślij klientowi link do wybranego modelu. Klient sam wybierze wersję, wyposażenie i prześle gotową konfigurację do OYC.</p><div className="client-link-list">{models.map((item) => <div key={item.id}><span><b>{item.name}</b><small>{item.versions.length} {item.versions.length === 2 ? "wersje" : "wersji"} · {item.options.length + item.delivery.length} pozycji</small></span><button type="button" onClick={() => void copyClientConfigurator(item)}>Kopiuj link</button><button type="button" className="primary" onClick={() => void sendClientConfigurator(item)}>Wyślij link</button></div>)}</div><h3>Historia ofert</h3><div className="history-list">{history.length ? history.map((item) => <div className="history-row" key={item.number}><span><b>{item.number}</b><small>{item.customer} · {item.model}{item.version ? ` · ${item.version}` : ""}</small></span><strong>{money(historyNetTotal(item))}</strong><time>{item.date}</time><div className="history-row-actions"><button type="button" onClick={() => { setHistoryPreview(item); setAdminOpen(false); }}>Podgląd</button><button type="button" className="primary" onClick={() => editHistoryOffer(item)}>Edytuj ofertę</button></div></div>) : <p className="empty">Historia pojawi się po przygotowaniu pierwszej oferty.</p>}</div><p className="admin-note">Przycisk „Edytuj ofertę” otwiera bezpośrednio konfigurator wyposażenia. Nowe oferty odtwarzają całą konfigurację; w starszych wpisach wyposażenie należy wybrać ponownie.</p></Modal>}
-      {historyPreview && <Modal title={`Oferta ${historyPreview.number}`} onClose={() => setHistoryPreview(null)}><div className="history-detail-head"><div><span>KLIENT</span><strong>{historyPreview.customer}</strong><small>{historyPreview.customerEmail || "Brak adresu e-mail"}</small></div><div><span>MODEL</span><strong>{historyPreview.model}</strong><small>{historyPreview.version || "Wersja nie została zapisana"}</small></div><div><span>CENA OFERTOWA NETTO</span><strong>{money(historyNetTotal(historyPreview))}</strong><small>{historyPreview.date}</small></div></div><iframe className="history-document" title={`Podgląd ${historyPreview.number}`} srcDoc={historyDocument(historyPreview)}/><div className="history-detail-actions"><button className="primary" onClick={() => editHistoryOffer(historyPreview)}>Edytuj ofertę</button><button onClick={() => void downloadPdf(historyPreview)}>Pobierz PDF</button><button onClick={() => { const frame = window.open("", "_blank", "width=1000,height=800"); if (!frame) return showToast("Zezwól przeglądarce na otwieranie okien"); frame.document.write(historyDocument(historyPreview)); frame.document.close(); frame.setTimeout(() => frame.print(), 300); }}>Drukuj</button><button className="danger" onClick={() => removeHistoryOffer(historyPreview.number)}>Usuń z historii</button></div></Modal>}
+      {adminOpen && <Modal title="Panel administratora" onClose={() => setAdminOpen(false)}>
+        <div className="admin-kpis"><div><strong>{models.length}</strong><span>modeli</span></div><div><strong>{models.reduce((sum, item) => sum + item.options.length + item.delivery.length, 0)}</strong><span>pozycji cenowych</span></div><div><strong>{history.length}</strong><span>zapisanych ofert</span></div></div>
+        <div className="admin-actions"><label>Wybierz nowy Excel<input type="file" accept=".xlsx,.xls" onChange={(e) => e.target.files?.[0] && showToast(`Wybrano ${e.target.files[0].name}. Plik oczekuje na walidację i publikację katalogu.`)}/></label><button onClick={() => download("katalog-bali-a-2026.json", JSON.stringify(catalog, null, 2), "application/json")}>Eksport danych katalogu</button></div>
+        <h3>Konfiguratory dla klientów</h3><p className="admin-section-intro">Wyślij klientowi link do wybranego modelu. Klient sam wybierze wersję, wyposażenie i prześle gotową konfigurację do OYC.</p>
+        <div className="client-link-list">{models.map((item) => <div key={item.id}><span><b>{item.name}</b><small>{item.versions.length} {item.versions.length === 2 ? "wersje" : "wersji"} · {item.options.length + item.delivery.length} pozycji</small></span><button type="button" onClick={() => void copyClientConfigurator(item)}>Kopiuj link</button><button type="button" className="primary" onClick={() => void sendClientConfigurator(item)}>Wyślij link</button></div>)}</div>
+        <h3>Historia ofert</h3>
+        <div className="history-list">{history.length ? history.map((item) => <div className="history-row" key={item.number}>
+          <span><b>{item.number}</b><small>{item.customer} · {item.model}{item.version ? ` · ${item.version}` : ""}</small><em className={item.status === "accepted" ? "offer-status accepted" : "offer-status"}>{item.status === "accepted" ? "OFERTA ZAAKCEPTOWANA" : "WERSJA ROBOCZA"}</em></span>
+          <strong>{money(historyNetTotal(item))}</strong><time>{item.date}</time>
+          <div className="history-row-actions"><button type="button" onClick={() => { setHistoryPreview(item); setAdminOpen(false); }}>Podgląd</button><button type="button" onClick={() => setOfferAcceptance(item, item.status !== "accepted")}>{item.status === "accepted" ? "Cofnij akceptację" : "Akceptuj ofertę"}</button>{item.status === "accepted" && item.payload && <button type="button" className="primary" onClick={() => openContractGenerator(item)}>Generuj umowę</button>}<button type="button" onClick={() => editHistoryOffer(item)}>Edytuj ofertę</button></div>
+        </div>) : <p className="empty">Historia pojawi się po przygotowaniu pierwszej oferty.</p>}</div>
+        <p className="admin-note">Umowę można wygenerować po zaakceptowaniu oferty zapisanej z pełną konfiguracją. Edycja zaakceptowanej oferty przywraca jej status roboczy.</p>
+      </Modal>}
+      {historyPreview && <Modal title={`Oferta ${historyPreview.number}`} onClose={() => setHistoryPreview(null)}>
+        <div className="history-detail-head"><div><span>KLIENT</span><strong>{historyPreview.customer}</strong><small>{historyPreview.customerEmail || "Brak adresu e-mail"}</small></div><div><span>MODEL</span><strong>{historyPreview.model}</strong><small>{historyPreview.version || "Wersja nie została zapisana"}</small></div><div><span>CENA OFERTOWA NETTO</span><strong>{money(historyNetTotal(historyPreview))}</strong><small>{historyPreview.date}</small></div></div>
+        <div className="contract-source-status"><em className={historyPreview.status === "accepted" ? "offer-status accepted" : "offer-status"}>{historyPreview.status === "accepted" ? "OFERTA ZAAKCEPTOWANA" : "WERSJA ROBOCZA"}</em></div>
+        <iframe className="history-document" title={`Podgląd ${historyPreview.number}`} srcDoc={historyDocument(historyPreview)}/>
+        <div className="history-detail-actions"><button onClick={() => setOfferAcceptance(historyPreview, historyPreview.status !== "accepted")}>{historyPreview.status === "accepted" ? "Cofnij akceptację" : "Akceptuj ofertę"}</button>{historyPreview.status === "accepted" && historyPreview.payload && <button className="primary" onClick={() => openContractGenerator(historyPreview)}>Generuj umowę</button>}<button onClick={() => editHistoryOffer(historyPreview)}>Edytuj ofertę</button><button onClick={() => void downloadPdf(historyPreview)}>Pobierz PDF</button><button onClick={() => { const frame = window.open("", "_blank", "width=1000,height=800"); if (!frame) return showToast("Zezwól przeglądarce na otwieranie okien"); frame.document.write(historyDocument(historyPreview)); frame.document.close(); frame.setTimeout(() => frame.print(), 300); }}>Drukuj</button><button className="danger" onClick={() => removeHistoryOffer(historyPreview.number)}>Usuń z historii</button></div>
+      </Modal>}
+      {contractOffer && <Modal title={`Generuj umowę ${contractNumberForOffer(contractOffer.number)}`} onClose={() => setContractOffer(null)}>
+        <form className="contract-form" onSubmit={(event) => { event.preventDefault(); void downloadContract(); }}>
+          <div className="contract-source"><div><span>OFERTA</span><strong>{contractOffer.number}</strong></div><div><span>KLIENT</span><strong>{contractOffer.customer}</strong></div><div><span>MODEL</span><strong>{contractOffer.model}</strong></div><div><span>CENA NETTO</span><strong>{money(historyNetTotal(contractOffer))}</strong></div></div>
+          <section className="contract-section"><h3>Nabywca i jednostka</h3><div className="contract-grid"><label className="field">Rodzaj nabywcy<select value={contractDraft.buyerType} onChange={(event) => updateContractDraft("buyerType", event.target.value as BuyerType)}><option value="b2c">B2C - osoba prywatna</option><option value="b2b">B2B - firma</option></select></label><Field label="Data umowy" type="date" value={contractDraft.contractDate} onChange={(value) => updateContractDraft("contractDate", value)}/><Field label="Adres Kupującego" required value={contractDraft.customerAddress} onChange={(value) => updateContractDraft("customerAddress", value)}/><Field label={contractDraft.buyerType === "b2c" ? "PESEL / numer dokumentu" : "NIP / VAT UE"} required value={contractDraft.customerId} onChange={(value) => updateContractDraft("customerId", value)}/><Field label="Rok modelowy" value={contractDraft.modelYear} onChange={(value) => updateContractDraft("modelYear", value)}/><Field label="HIN / CIN" value={contractDraft.hullNumber} onChange={(value) => updateContractDraft("hullNumber", value)}/><Field label="Numery seryjne silników" value={contractDraft.engineSerials} onChange={(value) => updateContractDraft("engineSerials", value)}/><Field label="Liczba egzemplarzy" value={contractDraft.copies} onChange={(value) => updateContractDraft("copies", value)}/></div></section>
+          <section className="contract-section"><h3>Harmonogram wpłat</h3><div className="payment-grid"><b>Etap</b><b>Procent lub kwota</b><b>Termin</b><span>I rata / zaliczka</span><Field label="" value={contractDraft.payment1} onChange={(value) => updateContractDraft("payment1", value)}/><Field label="" type="date" value={contractDraft.paymentDate1} onChange={(value) => updateContractDraft("paymentDate1", value)}/><span>II rata</span><Field label="" value={contractDraft.payment2} onChange={(value) => updateContractDraft("payment2", value)}/><Field label="" type="date" value={contractDraft.paymentDate2} onChange={(value) => updateContractDraft("paymentDate2", value)}/><span>III rata</span><Field label="" value={contractDraft.payment3} onChange={(value) => updateContractDraft("payment3", value)}/><Field label="" type="date" value={contractDraft.paymentDate3} onChange={(value) => updateContractDraft("paymentDate3", value)}/><span>Płatność końcowa</span><Field label="" value={contractDraft.finalPayment} onChange={(value) => updateContractDraft("finalPayment", value)}/><Field label="" type="date" value={contractDraft.finalPaymentDate} onChange={(value) => updateContractDraft("finalPaymentDate", value)}/></div></section>
+          <section className="contract-section"><h3>Odbiór i warunki</h3><div className="contract-grid"><Field label="Termin odbioru" type="date" value={contractDraft.pickupDate} onChange={(value) => updateContractDraft("pickupDate", value)}/><Field label="Miejsce odbioru" value={contractDraft.pickupPlace} onChange={(value) => updateContractDraft("pickupPlace", value)}/><Field label="Miejsce docelowe" value={contractDraft.destination} onChange={(value) => updateContractDraft("destination", value)}/><Field label="Inne koszty netto" value={contractDraft.otherCosts} onChange={(value) => updateContractDraft("otherCosts", value)}/></div><label className="textarea-field">Warunki specjalne<textarea rows={5} value={contractDraft.specialTerms} onChange={(event) => updateContractDraft("specialTerms", event.target.value)} placeholder="Ewentualne ustalenia dodatkowe…"/></label></section>
+          <div className="contract-legal-note"><strong>VAT jest ustalany dla konkretnej transakcji.</strong><span>Generator nie nalicza automatycznie stawki 0%, 23% ani 25%. Klauzule umowy zależą od wybranego wariantu B2C/B2B.</span></div>
+          <div className="contract-actions"><button type="button" onClick={() => setContractOffer(null)}>Anuluj</button><button className="primary" type="submit">Generuj i pobierz umowę PDF</button></div>
+        </form>
+      </Modal>}
       {planOpen && planPreview && <div className="plan-lightbox"><button className="plan-lightbox-backdrop" onClick={() => setPlanOpen(false)} aria-label="Zamknij powiększony plan"/><section className="plan-lightbox-dialog" role="dialog" aria-modal="true" aria-label={`Plan: ${version.name}`}><header><div><p>{model.name} · PLAN WNĘTRZA</p><h2>{version.name}</h2></div><button onClick={() => setPlanOpen(false)} aria-label="Zamknij">×</button></header><div className="plan-lightbox-image"><Image src={planPreview} alt={`Powiększony plan: ${version.name}`} fill sizes="96vw" priority unoptimized/></div></section></div>}
       {toast && <div className="toast">{toast}</div>}
     </main>
