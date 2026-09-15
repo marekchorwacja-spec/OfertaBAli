@@ -144,15 +144,15 @@ const emptyCustomer: Customer = {
 const eur = new Intl.NumberFormat("pl-PL", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
 const money = (value: number) => eur.format(value);
 const pendingDiscountText = "Uwzględniany przy finalnej konfiguracji / Do uzgodnienia";
-const vatSummaryLabel = (rate: number) => rate === 0
-  ? "VAT (0% - Dostawa Wewnątrzwspólnotowa UE / WDT)*"
-  : `VAT (${rate}%)`;
-const vatSummaryLabelHtml = (rate: number) => rate === 0
-  ? "VAT (0% – Dostawa Wewnątrzwspólnotowa UE / WDT)*"
-  : `VAT (${rate}%)`;
+const vatSettlementLabel = "VAT: rozliczany zgodnie z miejscem i warunkami dostawy";
 const tradeTermsNote = "Ostateczne warunki handlowe oraz indywidualny rabat dealerski ustalane są podczas wiążącej konfiguracji jachtu.";
 const discountScopeNote = "Rabat dotyczy wyłącznie jachtu, pakietów i wyposażenia (nie obejmuje usług transportu i przygotowania).";
-const wdtNote = "Podana cena jest kwotą netto przy zastosowaniu stawki VAT 0% w ramach Wewnętrzwspólnotowej Dostawy Towarów (WDT) dla podmiotów zarejestrowanych jako czynni podatnicy VAT-UE. W przypadku zakupu przez osobę prywatną lub podmiot niezarejestrowany do VAT-UE, do ceny netto zostanie doliczony podatek VAT według obowiązującej stawki.";
+const vatSettlementNotes = [
+  "Wszystkie ceny przedstawione w niniejszej ofercie są cenami netto. Ostateczny sposób rozliczenia podatku VAT zostanie określony na podstawie miejsca przeznaczenia i dostawy jachtu, statusu nabywcy oraz spełnienia warunków wymaganych przez obowiązujące przepisy podatkowe.",
+  "W przypadku dostawy jachtu z Chorwacji do innego państwa członkowskiego Unii Europejskiej, w tym do Polski, transakcja może zostać rozliczona bez chorwackiego podatku VAT, jeżeli spełnione zostaną wszystkie wymagane prawem warunki dotyczące dostawy wewnątrzwspólnotowej, w szczególności dotyczące faktycznego przemieszczenia jachtu do innego państwa członkowskiego oraz wymaganej dokumentacji.",
+  "W przypadku gdy miejscem dostawy i opodatkowania będzie Chorwacja, zostanie zastosowana właściwa chorwacka stawka VAT.",
+  "Ostateczna stawka i sposób rozliczenia VAT zostaną potwierdzone przed zawarciem umowy sprzedaży i wystawieniem faktury końcowej.",
+];
 const categoryAliases: Record<string, string> = {
   "Olinowanie i żagle": "Żagle",
   "Mechanika i wyposażenie bezpieczeństwa": "Silniki i bezpieczeństwo",
@@ -197,7 +197,6 @@ export function Configurator() {
   const [category, setCategory] = useState("Wszystkie");
   const [maxPrice, setMaxPrice] = useState<number>(250000);
   const [discount, setDiscount] = useState(0);
-  const [vat, setVat] = useState(23);
   const [customer, setCustomer] = useState<Customer>(emptyCustomer);
   const [dark, setDark] = useState(true);
   const [compareIds, setCompareIds] = useState<string[]>([]);
@@ -242,7 +241,6 @@ export function Configurator() {
     setVersionId(sharedModel.versions[0].id);
     setSelected({});
     setDiscount(0);
-    setVat(23);
     setCustomer(emptyCustomer);
     setStep(2);
   }, []);
@@ -258,13 +256,13 @@ export function Configurator() {
   const chosenModelOptions = model.options.filter((item) => (selected[selectionKey(item)] ?? item.defaultQuantity) > 0);
   const chosenDelivery = model.delivery.filter((item) => (selected[selectionKey(item)] ?? item.defaultQuantity) > 0);
   const chosenOptions = [...chosenModelOptions, ...chosenDelivery];
-  const { equipmentNet, deliveryNet, discountableSubtotal, subtotal, discountValue, configurationNetAfterDiscount, net, vatValue, gross } = calculateOfferPricing({
+  const { equipmentNet, deliveryNet, discountableSubtotal, subtotal, discountValue, configurationNetAfterDiscount, net } = calculateOfferPricing({
     basePrice: version.basePrice,
     excellencePrice: model.excellencePackage.price,
     options: chosenModelOptions.map((item) => ({ price: item.price, quantity: selected[selectionKey(item)] ?? item.defaultQuantity })),
     delivery: chosenDelivery.map((item) => ({ price: item.price, quantity: selected[selectionKey(item)] ?? item.defaultQuantity })),
     discountPercent: discount,
-    vatPercent: vat,
+    vatPercent: 0,
   });
   const offerNumber = editingOfferNumber ?? `OYC/${new Date(offerSeed).getFullYear()}/${String(offerSeed).slice(-6)}`;
   const discountPending = discount === 0;
@@ -283,7 +281,6 @@ export function Configurator() {
     setOfferSeed(Date.now());
     setSelected({});
     setDiscount(0);
-    setVat(23);
     setCustomer(emptyCustomer);
     setSearch("");
     setCategory("Wszystkie");
@@ -336,10 +333,10 @@ export function Configurator() {
     version,
     excellencePackage: model.excellencePackage,
     selectedOptions: chosenOptions.map((item) => ({ ...item, quantity: selected[selectionKey(item)] ?? item.defaultQuantity })),
-    calculation: { basePrice: version.basePrice, excellence: model.excellencePackage.price, equipmentNet, deliveryNet, discountableSubtotal, subtotal, discountPercent: discount, discountValue, configurationNetAfterDiscount, net, vatPercent: vat, vatValue, gross },
+    calculation: { basePrice: version.basePrice, excellence: model.excellencePackage.price, equipmentNet, deliveryNet, discountableSubtotal, subtotal, discountPercent: discount, discountValue, configurationNetAfterDiscount, net, vatPercent: 0, vatValue: 0, gross: net },
     customer,
   });
-  const offerHtml = () => `<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>${offerNumber}</title><style>body{font-family:Arial;color:#10223f;max-width:900px;margin:40px auto;line-height:1.5}h1{font-family:Georgia;font-size:42px}.gold{color:#a77928}.row{display:flex;justify-content:space-between;gap:30px;border-bottom:1px solid #ddd;padding:10px 0}.row strong{text-align:right}.section{margin-top:24px;padding:9px 0;color:#a77928;font-size:12px;font-weight:700;letter-spacing:.08em;border-bottom:2px solid #a77928}.calculation{margin-top:32px;border-top:2px solid #a77928}.discount{color:#9b3f3f}.total{margin-top:8px;padding:18px 14px;background:#10223f;color:#fff;border:0;font-size:24px;font-weight:700}.notes{margin-top:28px;padding:18px 20px;background:#f5f1e8;border-left:3px solid #a77928;font-size:13px}.notes h3{margin:12px 0 4px;color:#8d6a2d;font-size:13px}.notes h3:first-child{margin-top:0}.notes p{margin:0 0 8px}.muted{color:#687489}img{width:120px}</style></head><body><p class="gold">ODISEJ YACHT CLUB · OFERTA ${offerNumber}</p><h1>${model.name}</h1><p>${version.name}</p><p class="muted">${customer.firstName} ${customer.lastName} · ${customer.company}</p><div class="section">JACHT, PAKIETY I WYPOSAŻENIE — PODLEGA RABATOWI</div>${chosenModelOptions.map((item) => { const quantity = selected[selectionKey(item)] ?? item.defaultQuantity; return `<div class="row"><span>${item.description}${quantity > 1 ? ` × ${quantity}` : ""}</span><strong>${item.price === null ? "Cena na zapytanie" : money(item.price * quantity)}</strong></div>`; }).join("")}${chosenDelivery.length ? `<div class="section">PRZYGOTOWANIE I DOSTAWA — BEZ RABATU</div>${chosenDelivery.map((item) => { const quantity = selected[selectionKey(item)] ?? item.defaultQuantity; return `<div class="row"><span>${item.description}${quantity > 1 ? ` × ${quantity}` : ""}</span><strong>${item.price === null ? "Cena na zapytanie" : money(item.price * quantity)}</strong></div>`; }).join("")}` : ""}<section class="calculation"><div class="row"><span>Jacht, pakiety i konfiguracja (cena katalogowa)</span><strong>${money(discountableSubtotal)}</strong></div><div class="row discount"><span>Indywidualny rabat dealerski${discountPending ? "" : ` (${discount}%)`}</span><strong>${discountPending ? pendingDiscountText : `− ${money(discountValue)}`}</strong></div><div class="row"><span>Cena jachtu po rabacie</span><strong>${money(configurationNetAfterDiscount)}</strong></div><div class="row"><span>Przygotowanie i dostawa</span><strong>${money(deliveryNet)}</strong></div><div class="row"><span>Suma netto</span><strong>${money(net)}</strong></div><div class="row"><span>${vatSummaryLabelHtml(vat)}</span><strong>${money(vatValue)}</strong></div><div class="row total"><span>KWOTA DO ZAPŁATY</span><span>${money(gross)}</span></div></section><section class="notes"><h3>Rabat i warunki handlowe:</h3><p>${tradeTermsNote}</p><p>${discountScopeNote}</p><h3>Kwestia podatku VAT (0% WDT):</h3><p>${wdtNote}</p></section><p class="muted">Oferta ważna po pisemnym potwierdzeniu przez Odisej Yacht Club. Ceny i zakres wyposażenia należy zweryfikować przed zawarciem umowy.</p><img alt="Kod QR oferty" src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(offerNumber)}"></body></html>`;
+  const offerHtml = () => `<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>${offerNumber}</title><style>body{font-family:Arial;color:#10223f;max-width:900px;margin:40px auto;line-height:1.5}h1{font-family:Georgia;font-size:42px}.gold{color:#a77928}.row{display:flex;justify-content:space-between;gap:30px;border-bottom:1px solid #ddd;padding:10px 0}.row strong{text-align:right}.section{margin-top:24px;padding:9px 0;color:#a77928;font-size:12px;font-weight:700;letter-spacing:.08em;border-bottom:2px solid #a77928}.calculation{margin-top:32px;border-top:2px solid #a77928}.discount{color:#9b3f3f}.total{margin-top:8px;padding:18px 14px;background:#10223f;color:#fff;border:0;font-size:24px;font-weight:700}.notes{margin-top:28px;padding:18px 20px;background:#f5f1e8;border-left:3px solid #a77928;font-size:13px}.notes h3{margin:12px 0 4px;color:#8d6a2d;font-size:13px}.notes h3:first-child{margin-top:0}.notes p{margin:0 0 8px}.muted{color:#687489}img{width:120px}</style></head><body><p class="gold">ODISEJ YACHT CLUB · OFERTA ${offerNumber}</p><h1>${model.name}</h1><p>${version.name}</p><p class="muted">${customer.firstName} ${customer.lastName} · ${customer.company}</p><div class="section">JACHT, PAKIETY I WYPOSAŻENIE — PODLEGA RABATOWI</div>${chosenModelOptions.map((item) => { const quantity = selected[selectionKey(item)] ?? item.defaultQuantity; return `<div class="row"><span>${item.description}${quantity > 1 ? ` × ${quantity}` : ""}</span><strong>${item.price === null ? "Cena na zapytanie" : money(item.price * quantity)}</strong></div>`; }).join("")}${chosenDelivery.length ? `<div class="section">PRZYGOTOWANIE I DOSTAWA — BEZ RABATU</div>${chosenDelivery.map((item) => { const quantity = selected[selectionKey(item)] ?? item.defaultQuantity; return `<div class="row"><span>${item.description}${quantity > 1 ? ` × ${quantity}` : ""}</span><strong>${item.price === null ? "Cena na zapytanie" : money(item.price * quantity)}</strong></div>`; }).join("")}` : ""}<section class="calculation"><div class="row"><span>Jacht, pakiety i konfiguracja (cena katalogowa)</span><strong>${money(discountableSubtotal)}</strong></div><div class="row discount"><span>Indywidualny rabat dealerski${discountPending ? "" : ` (${discount}%)`}</span><strong>${discountPending ? pendingDiscountText : `− ${money(discountValue)}`}</strong></div><div class="row"><span>Cena jachtu po rabacie</span><strong>${money(configurationNetAfterDiscount)}</strong></div><div class="row"><span>Przygotowanie i dostawa</span><strong>${money(deliveryNet)}</strong></div><div class="row"><span>SUMA NETTO</span><strong>${money(net)}</strong></div><div class="row"><span>${vatSettlementLabel}</span><strong></strong></div><div class="row total"><span>CENA OFERTOWA NETTO</span><span>${money(net)}</span></div></section><section class="notes"><h3>Rabat i warunki handlowe:</h3><p>${tradeTermsNote}</p><p>${discountScopeNote}</p><h3>ZASADY ROZLICZENIA PODATKU VAT</h3>${vatSettlementNotes.map((note) => `<p>${note}</p>`).join("")}</section><p class="muted">Oferta ważna po pisemnym potwierdzeniu przez Odisej Yacht Club. Ceny i zakres wyposażenia należy zweryfikować przed zawarciem umowy.</p><img alt="Kod QR oferty" src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(offerNumber)}"></body></html>`;
   const saveOffer = () => {
     const record: HistoryOffer = {
       number: offerNumber,
@@ -347,7 +344,7 @@ export function Configurator() {
       customer: `${customer.firstName} ${customer.lastName}`.trim() || "Klient",
       customerEmail: customer.email,
       version: version.name,
-      total: gross,
+      total: net,
       date: new Date().toLocaleDateString("pl-PL"),
       html: offerHtml(),
       payload: offerPayload(),
@@ -371,7 +368,7 @@ export function Configurator() {
     const pdfVersion = payload?.version.name ?? historyItem?.version ?? version.name;
     const pdfCustomer = payload?.customer ?? (historyItem ? { ...emptyCustomer, firstName: historyItem.customer, email: historyItem.customerEmail ?? "" } : customer);
     const pdfOptions = payload?.selectedOptions ?? (historyItem ? [] : chosenOptions.map((item) => ({ ...item, quantity: selected[selectionKey(item)] ?? item.defaultQuantity })));
-    const calculation = payload?.calculation ?? (historyItem ? { basePrice: 0, excellence: 0, equipmentNet: 0, deliveryNet: 0, discountableSubtotal: historyItem.total, subtotal: historyItem.total, discountPercent: 0, discountValue: 0, configurationNetAfterDiscount: historyItem.total, net: historyItem.total, vatPercent: 0, vatValue: 0, gross: historyItem.total } : { basePrice: version.basePrice, excellence: model.excellencePackage.price, equipmentNet, deliveryNet, discountableSubtotal, subtotal, discountPercent: discount, discountValue, configurationNetAfterDiscount, net, vatPercent: vat, vatValue, gross });
+    const calculation = payload?.calculation ?? (historyItem ? { basePrice: 0, excellence: 0, equipmentNet: 0, deliveryNet: 0, discountableSubtotal: historyItem.total, subtotal: historyItem.total, discountPercent: 0, discountValue: 0, configurationNetAfterDiscount: historyItem.total, net: historyItem.total, vatPercent: 0, vatValue: 0, gross: historyItem.total } : { basePrice: version.basePrice, excellence: model.excellencePackage.price, equipmentNet, deliveryNet, discountableSubtotal, subtotal, discountPercent: discount, discountValue, configurationNetAfterDiscount, net, vatPercent: 0, vatValue: 0, gross: net });
     const pdfDeliveryNet = calculation.deliveryNet ?? 0;
     const pdfDiscountableSubtotal = calculation.discountableSubtotal ?? Math.max((calculation.subtotal ?? 0) - pdfDeliveryNet, 0);
     const pdfConfigurationNetAfterDiscount = calculation.configurationNetAfterDiscount ?? pdfDiscountableSubtotal - (calculation.discountValue ?? 0);
@@ -408,7 +405,7 @@ export function Configurator() {
         { text: `OFERTA ${pdfNumber}`, style: "offerNumber" },
         { columns: [
           { width: "*", stack: [{ text: pdfModel, style: "title" }, { text: pdfVersion, style: "subtitle" }] },
-          { width: 155, stack: [{ text: "DATA OFERTY", style: "label" }, { text: historyItem?.date ?? new Date().toLocaleDateString("pl-PL"), bold: true }, { text: "WARTOŚĆ BRUTTO", style: "label", margin: [0, 12, 0, 2] }, { text: money(calculation.gross ?? historyItem?.total ?? gross), style: "headerTotal" }] },
+          { width: 155, stack: [{ text: "DATA OFERTY", style: "label" }, { text: historyItem?.date ?? new Date().toLocaleDateString("pl-PL"), bold: true }, { text: "CENA OFERTOWA NETTO", style: "label", margin: [0, 12, 0, 2] }, { text: money(calculation.net ?? historyItem?.total ?? net), style: "headerTotal" }] },
         ], margin: [0, 20, 0, 22] },
         { text: "DANE KLIENTA", style: "section" },
         { table: { widths: [110, "*"], body: [
@@ -429,15 +426,15 @@ export function Configurator() {
           [{ text: `Indywidualny rabat dealerski${pdfDiscountPending ? "" : ` (${calculation.discountPercent}%)`}`, color: "#9b3f3f" }, { text: pdfDiscountPending ? pendingDiscountText : `- ${money(calculation.discountValue ?? 0)}`, alignment: "right", color: "#9b3f3f", fontSize: pdfDiscountPending ? 7 : 9 }],
           ["Cena jachtu po rabacie", { text: money(pdfConfigurationNetAfterDiscount), alignment: "right", bold: true }],
           ["Przygotowanie i dostawa", { text: money(pdfDeliveryNet), alignment: "right", bold: true }],
-          ["Suma netto", { text: money(calculation.net ?? 0), alignment: "right", bold: true }],
-          [vatSummaryLabel(calculation.vatPercent ?? 0), { text: money(calculation.vatValue ?? 0), alignment: "right" }],
-          [{ text: "KWOTA DO ZAPŁATY", style: "totalLabel" }, { text: money(calculation.gross ?? 0), style: "totalValue", alignment: "right" }],
+          ["SUMA NETTO", { text: money(calculation.net ?? 0), alignment: "right", bold: true }],
+          [{ text: vatSettlementLabel }, ""],
+          [{ text: "CENA OFERTOWA NETTO", style: "totalLabel" }, { text: money(calculation.net ?? 0), style: "totalValue", alignment: "right" }],
         ] }, layout: "lightHorizontalLines", margin: [0, 5, 0, 20] },
         { text: "RABAT I WARUNKI HANDLOWE", style: "noteHeading" },
         { text: tradeTermsNote, style: "noteText" },
         { text: discountScopeNote, style: "noteText" },
-        { text: "KWESTIA PODATKU VAT (0% WDT)", style: "noteHeading", margin: [0, 7, 0, 3] },
-        { text: wdtNote, style: "noteText", margin: [0, 0, 0, 7] },
+        { text: "ZASADY ROZLICZENIA PODATKU VAT", style: "noteHeading", margin: [0, 7, 0, 3] },
+        ...vatSettlementNotes.map((note, index) => ({ text: note, style: "noteText", margin: [0, 0, 0, index === vatSettlementNotes.length - 1 ? 7 : 4] })),
         { text: "Oferta ważna po pisemnym potwierdzeniu przez Odisej Yacht Club. Ceny i zakres wyposażenia należy zweryfikować przed zawarciem umowy.", color: "#687489", fontSize: 8 },
       ],
       styles: {
@@ -473,7 +470,7 @@ export function Configurator() {
   const sendEmail = async () => {
     saveOffer();
     const title = `Oferta ${offerNumber} – ${model.name}`;
-    const message = `Dzień dobry,\n\nw załączniku przesyłamy konfigurację ${model.name}.\nWartość brutto: ${money(gross)}.\nNumer oferty: ${offerNumber}.\nOdbiorca: ${customer.email}\n\nOdisej Yacht Club (OYC)`;
+    const message = `Dzień dobry,\n\nw załączniku przesyłamy konfigurację ${model.name}.\nCena ofertowa netto: ${money(net)}.\nVAT zostanie rozliczony zgodnie z miejscem i warunkami dostawy.\nNumer oferty: ${offerNumber}.\nOdbiorca: ${customer.email}\n\nOdisej Yacht Club (OYC)`;
     showToast("Przygotowywanie załącznika PDF…");
     let pdfBlob: Blob;
     try {
@@ -505,7 +502,7 @@ export function Configurator() {
   const sendConfigurationToDealer = async () => {
     saveOffer();
     const title = `Konfiguracja klienta ${model.name} — ${customer.firstName} ${customer.lastName}`;
-    const message = `Dzień dobry,\n\nprzesyłam moją konfigurację katamaranu ${model.name}.\nWersja: ${version.name}.\nWartość katalogowa brutto: ${money(gross)}.\nNumer konfiguracji: ${offerNumber}.\n\nDane kontaktowe: ${customer.firstName} ${customer.lastName}, ${customer.email}, ${customer.phone}.`;
+    const message = `Dzień dobry,\n\nprzesyłam moją konfigurację katamaranu ${model.name}.\nWersja: ${version.name}.\nCena ofertowa netto: ${money(net)}.\nVAT zostanie rozliczony zgodnie z miejscem i warunkami dostawy.\nNumer konfiguracji: ${offerNumber}.\n\nDane kontaktowe: ${customer.firstName} ${customer.lastName}, ${customer.email}, ${customer.phone}.`;
     showToast("Przygotowywanie konfiguracji PDF…");
     let pdfBlob: Blob;
     try {
@@ -535,7 +532,16 @@ export function Configurator() {
     window.setTimeout(() => window.open(`mailto:${dealerEmail}?subject=${subject}&body=${body}`, "_self"), 350);
   };
 
-  const historyDocument = (item: HistoryOffer) => item.html ?? `<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>${item.number}</title><style>body{font-family:Arial;color:#10223f;max-width:800px;margin:50px auto;line-height:1.6}.gold{color:#a77928}dl{border-top:1px solid #ddd}div{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #ddd}</style></head><body><p class="gold">ODISEJ YACHT CLUB · ARCHIWUM OFERT</p><h1>${item.number}</h1><dl><div><dt>Klient</dt><dd>${item.customer}</dd></div><div><dt>Model</dt><dd>${item.model}</dd></div><div><dt>Wartość brutto</dt><dd>${money(item.total)}</dd></div><div><dt>Data</dt><dd>${item.date}</dd></div></dl><p>Ta pozycja pochodzi ze starszej wersji historii i zawiera jedynie dane podsumowujące.</p></body></html>`;
+  const historyNetTotal = (item: HistoryOffer) => item.payload?.calculation.net ?? item.total;
+  const historyDocument = (item: HistoryOffer) => {
+    if (!item.html) return `<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>${item.number}</title><style>body{font-family:Arial;color:#10223f;max-width:800px;margin:50px auto;line-height:1.6}.gold{color:#a77928}dl{border-top:1px solid #ddd}div{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #ddd}</style></head><body><p class="gold">ODISEJ YACHT CLUB · ARCHIWUM OFERT</p><h1>${item.number}</h1><dl><div><dt>Klient</dt><dd>${item.customer}</dd></div><div><dt>Model</dt><dd>${item.model}</dd></div><div><dt>Cena ofertowa netto</dt><dd>${money(historyNetTotal(item))}</dd></div><div><dt>Data</dt><dd>${item.date}</dd></div></dl><p>Ta pozycja pochodzi ze starszej wersji historii i zawiera jedynie dane podsumowujące.</p></body></html>`;
+    const netTotal = money(historyNetTotal(item));
+    return item.html
+      .replace(/<div class="row"><span>VAT[^<]*<\/span><strong>[^<]*<\/strong><\/div>/, `<div class="row"><span>${vatSettlementLabel}</span><strong></strong></div>`)
+      .replace(/<div class="row total"><span>KWOTA DO ZAPŁATY<\/span><span>[^<]*<\/span><\/div>/, `<div class="row total"><span>CENA OFERTOWA NETTO</span><span>${netTotal}</span></div>`)
+      .replace(/<h3>Kwestia podatku VAT \(0% WDT\):<\/h3><p>[^<]*<\/p>/, `<h3>ZASADY ROZLICZENIA PODATKU VAT</h3>${vatSettlementNotes.map((note) => `<p>${note}</p>`).join("")}`)
+      .replace(/<span>Suma netto<\/span>/g, "<span>SUMA NETTO</span>");
+  };
   const removeHistoryOffer = (number: string) => {
     const next = history.filter((item) => item.number !== number);
     setHistory(next);
@@ -555,7 +561,6 @@ export function Configurator() {
       setVersionId(savedModel.versions[0].id);
       setSelected({});
       setDiscount(0);
-      setVat(23);
       setCustomer({ ...emptyCustomer, firstName, lastName: lastNameParts.join(" "), email: item.customerEmail ?? "" });
       setEditingOfferNumber(item.number);
       setSearch("");
@@ -577,7 +582,6 @@ export function Configurator() {
     setVersionId(savedVersion.id);
     setSelected(Object.fromEntries(item.payload.selectedOptions.map((option) => [selectionKey(option), option.quantity])));
     setDiscount(item.payload.calculation.discountPercent ?? 0);
-    setVat(item.payload.calculation.vatPercent ?? 23);
     setCustomer({ ...emptyCustomer, ...item.payload.customer });
     setEditingOfferNumber(item.number);
     setSearch("");
@@ -637,38 +641,38 @@ export function Configurator() {
                 {chosenDelivery.length > 0 && <><div className="price-section-label no-discount">PRZYGOTOWANIE I DOSTAWA — BEZ RABATU</div>{chosenDelivery.map((item) => <PriceRow key={item.id} label={item.description} value={item.price}/>)}</>}
               </div>
               <div className="calculation-card">
-                {clientMode ? <div className="client-pricing-note"><strong>WARUNKI HANDLOWE USTALA DEALER</strong><span>Cena katalogowa nie zawiera indywidualnego rabatu dealerskiego. Ostateczne warunki potwierdzi Odisej Yacht Club.</span></div> : <><label>Rabat handlowy <span><input type="number" min="0" max="100" value={discount} onChange={(e) => setDiscount(Number(e.target.value))}/>%</span></label><label>Stawka VAT <span><input type="number" min="0" max="100" value={vat} onChange={(e) => setVat(Number(e.target.value))}/>%</span></label></>}
+                {clientMode ? <div className="client-pricing-note"><strong>WARUNKI HANDLOWE USTALA DEALER</strong><span>Cena katalogowa nie zawiera indywidualnego rabatu dealerskiego. Ostateczne warunki potwierdzi Odisej Yacht Club.</span></div> : <label>Rabat handlowy <span><input type="number" min="0" max="100" value={discount} onChange={(e) => setDiscount(Number(e.target.value))}/>%</span></label>}
                 <dl>
                   <div><dt>Jacht, pakiety i konfiguracja (cena katalogowa)</dt><dd>{money(discountableSubtotal)}</dd></div>
                   <div className="discount-summary-row"><dt>Indywidualny rabat dealerski{discountPending ? "" : ` (${discount}%)`}</dt><dd>{discountPending ? pendingDiscountText : `− ${money(discountValue)}`}</dd></div>
                   <div><dt>Cena jachtu po rabacie</dt><dd>{money(configurationNetAfterDiscount)}</dd></div>
                   <div className="no-discount-row"><dt>Przygotowanie i dostawa</dt><dd>{money(deliveryNet)}</dd></div>
-                  <div><dt>Suma netto</dt><dd>{money(net)}</dd></div>
-                  <div><dt>{vatSummaryLabelHtml(vat)}</dt><dd>{money(vatValue)}</dd></div>
+                  <div><dt>SUMA NETTO</dt><dd>{money(net)}</dd></div>
+                  <div><dt>{vatSettlementLabel}</dt><dd></dd></div>
                 </dl>
-                <div className="grand-total"><span>KWOTA DO ZAPŁATY</span><strong>{money(gross)}</strong></div>
+                <div className="grand-total"><span>CENA OFERTOWA NETTO</span><strong>{money(net)}</strong></div>
                 <div className="pricing-legal-notes">
                   <h4>Rabat i warunki handlowe:</h4>
                   <p>{tradeTermsNote}</p><p>{discountScopeNote}</p>
-                  <h4>Kwestia podatku VAT (0% WDT):</h4>
-                  <p>{wdtNote}</p>
+                  <h4>ZASADY ROZLICZENIA PODATKU VAT</h4>
+                  {vatSettlementNotes.map((note) => <p key={note}>{note}</p>)}
                 </div>
               </div>
             </div>
             <div className="export-strip"><button onClick={() => void downloadPdf()}>Pobierz PDF</button>{currentBrochure && <a className="brochure-download-button" href={currentBrochure.pdf} download>Pobierz katalog</a>}{!clientMode && <><button onClick={exportHtml}>Eksport HTML</button><button onClick={exportJson}>Eksport JSON</button></>}</div>
-            <StepFooter price={gross} gross onNext={() => setStep(5)}/>
+            <StepFooter price={net} offerNet onNext={() => setStep(5)}/>
           </section>}
 
           {step === 5 && <section className="content-stage narrow"><SectionHead eyebrow="Krok 5" title="Dane klienta" text={clientMode ? "Podaj dane kontaktowe, aby przesłać wybraną konfigurację do Odisej Yacht Club." : "Dane zostaną umieszczone na spersonalizowanej ofercie."}/><form className="customer-form" onSubmit={(e) => { e.preventDefault(); saveOffer(); setStep(6); }}><div className="field-grid"><Field label="Imię" required value={customer.firstName} onChange={(v) => updateCustomer("firstName", v)}/><Field label="Nazwisko" required value={customer.lastName} onChange={(v) => updateCustomer("lastName", v)}/><Field label="Firma" value={customer.company} onChange={(v) => updateCustomer("company", v)}/><Field label="Telefon" value={customer.phone} onChange={(v) => updateCustomer("phone", v)}/><Field label="E-mail" type="email" required value={customer.email} onChange={(v) => updateCustomer("email", v)}/><Field label="Kraj" value={customer.country} onChange={(v) => updateCustomer("country", v)}/><Field label="Port odbioru" value={customer.deliveryPort} onChange={(v) => updateCustomer("deliveryPort", v)}/><Field label="Nazwa jachtu" value={customer.yachtName} onChange={(v) => updateCustomer("yachtName", v)}/></div><label className="textarea-field">Uwagi<textarea rows={5} value={customer.notes} onChange={(e) => updateCustomer("notes", e.target.value)} placeholder="Termin odbioru, sposób finansowania, dodatkowe informacje…"/></label><button className="primary form-submit" type="submit">{clientMode ? "Zakończ konfigurację →" : "Przygotuj ofertę →"}</button></form></section>}
 
-          {step === 6 && <section className="content-stage offer-ready"><div className="success-mark">✓</div><p className="eyebrow">{clientMode ? "KONFIGURACJA KLIENTA GOTOWA" : editingOfferNumber ? "OFERTA ZAKTUALIZOWANA" : "OFERTA GOTOWA"}</p><h2>{model.name} czeka na swojego właściciela.</h2><p>{clientMode ? <>Konfiguracja <b>{offerNumber}</b> jest gotowa. Prześlij ją do Odisej Yacht Club, aby otrzymać potwierdzenie ceny i indywidualne warunki handlowe.</> : <>Oferta <b>{offerNumber}</b> dla {customer.firstName} {customer.lastName} została przygotowana. Wybierz sposób przekazania dokumentu.</>}</p><div className="offer-card"><div><span>WARTOŚĆ BRUTTO</span><strong>{money(gross)}</strong><small>{chosenOptions.length} opcji · {version.name}</small></div><div className="qr">OYC<small>QR</small></div></div><div className="offer-actions">{clientMode ? <button className="primary" onClick={() => void sendConfigurationToDealer()}>Wyślij konfigurację do OYC</button> : <button className="primary" onClick={() => void sendEmail()}>Wyślij z załącznikiem PDF</button>}<button onClick={() => void downloadPdf()}>Pobierz PDF</button>{currentBrochure && <a className="brochure-download-button" href={currentBrochure.pdf} download>Pobierz katalog</a>}{!clientMode && <><button onClick={exportHtml}>Pobierz HTML</button><button onClick={exportJson}>Pobierz JSON</button></>}</div>{!clientMode && <button className="text-button" onClick={startNewOffer}>Utwórz nową konfigurację</button>}</section>}
+          {step === 6 && <section className="content-stage offer-ready"><div className="success-mark">✓</div><p className="eyebrow">{clientMode ? "KONFIGURACJA KLIENTA GOTOWA" : editingOfferNumber ? "OFERTA ZAKTUALIZOWANA" : "OFERTA GOTOWA"}</p><h2>{model.name} czeka na swojego właściciela.</h2><p>{clientMode ? <>Konfiguracja <b>{offerNumber}</b> jest gotowa. Prześlij ją do Odisej Yacht Club, aby otrzymać potwierdzenie ceny i indywidualne warunki handlowe.</> : <>Oferta <b>{offerNumber}</b> dla {customer.firstName} {customer.lastName} została przygotowana. Wybierz sposób przekazania dokumentu.</>}</p><div className="offer-card"><div><span>CENA OFERTOWA NETTO</span><strong>{money(net)}</strong><small>{chosenOptions.length} opcji · {version.name}</small></div><div className="qr">OYC<small>QR</small></div></div><div className="offer-actions">{clientMode ? <button className="primary" onClick={() => void sendConfigurationToDealer()}>Wyślij konfigurację do OYC</button> : <button className="primary" onClick={() => void sendEmail()}>Wyślij z załącznikiem PDF</button>}<button onClick={() => void downloadPdf()}>Pobierz PDF</button>{currentBrochure && <a className="brochure-download-button" href={currentBrochure.pdf} download>Pobierz katalog</a>}{!clientMode && <><button onClick={exportHtml}>Pobierz HTML</button><button onClick={exportJson}>Pobierz JSON</button></>}</div>{!clientMode && <button className="text-button" onClick={startNewOffer}>Utwórz nową konfigurację</button>}</section>}
         </>
       )}
 
       {compareOpen && <Modal title="Porównanie modeli" onClose={() => setCompareOpen(false)}><div className="compare-picker">{models.map((item) => <label key={item.id}><input type="checkbox" checked={compareIds.includes(item.id)} onChange={() => setCompareIds((ids) => ids.includes(item.id) ? ids.filter((id) => id !== item.id) : ids.length < 3 ? [...ids, item.id] : ids)}/>{item.name}</label>)}</div>{compareIds.length ? <div className="compare-table"><div/><b>Cena</b><b>Wersja kabinowa</b><b>Silniki standardowe</b>{compareIds.map((id) => { const item = models.find((candidate) => candidate.id === id)!; const availableCabinVersions = cabinVersions(item); const selectedCabinVersion = availableCabinVersions.find((itemVersion) => itemVersion.id === compareVersions[id]) ?? availableCabinVersions[0]; return <div className="compare-column" key={id}><h3>{item.name}</h3><span>{money(selectedCabinVersion.basePrice)}</span><span><select aria-label={`Wersja kabinowa ${item.name}`} value={selectedCabinVersion.id} onChange={(event) => setCompareVersions((current) => ({ ...current, [id]: event.target.value }))}>{availableCabinVersions.map((itemVersion) => <option value={itemVersion.id} key={itemVersion.id}>{cabinLabel(cabinCount(itemVersion))}</option>)}</select></span><span>{selectedCabinVersion.standardEngines}</span></div>; })}</div> : <p className="empty">Wybierz maksymalnie trzy modele do porównania.</p>}</Modal>}
       {brochuresOpen && <Modal title="Kolekcja BALI" onClose={() => setBrochuresOpen(false)}><p className="brochure-intro">Poznaj całą gamę katamaranów BALI. Otwórz katalog w przeglądarce albo pobierz go na urządzenie.</p><div className="brochure-grid">{brochures.map((item) => <article className={item.release ? "brochure-card future-brochure" : "brochure-card"} key={item.model}><div className="brochure-cover"><Image src={item.cover} alt={`Okładka katalogu ${item.model}`} fill sizes="(max-width: 720px) 80vw, (max-width: 1100px) 40vw, 280px" unoptimized/>{item.release && <span className="brochure-release">{item.release}</span>}</div><div className="brochure-info"><p>KATALOG PREMIUM · {item.pages} STRON</p><h3>{item.model}</h3><div><a href={item.pdf} target="_blank" rel="noreferrer">Otwórz katalog <span>↗</span></a><a href={item.pdf} download>Pobierz PDF <span>↓</span></a></div></div></article>)}</div></Modal>}
-      {adminOpen && <Modal title="Panel administratora" onClose={() => setAdminOpen(false)}><div className="admin-kpis"><div><strong>{models.length}</strong><span>modeli</span></div><div><strong>{models.reduce((sum, item) => sum + item.options.length + item.delivery.length, 0)}</strong><span>pozycji cenowych</span></div><div><strong>{history.length}</strong><span>zapisanych ofert</span></div></div><div className="admin-actions"><label>Wybierz nowy Excel<input type="file" accept=".xlsx,.xls" onChange={(e) => e.target.files?.[0] && showToast(`Wybrano ${e.target.files[0].name}. Plik oczekuje na walidację i publikację katalogu.`)}/></label><button onClick={() => download("katalog-bali-a-2026.json", JSON.stringify(catalog, null, 2), "application/json")}>Eksport danych katalogu</button></div><h3>Konfiguratory dla klientów</h3><p className="admin-section-intro">Wyślij klientowi link do wybranego modelu. Klient sam wybierze wersję, wyposażenie i prześle gotową konfigurację do OYC.</p><div className="client-link-list">{models.map((item) => <div key={item.id}><span><b>{item.name}</b><small>{item.versions.length} {item.versions.length === 2 ? "wersje" : "wersji"} · {item.options.length + item.delivery.length} pozycji</small></span><button type="button" onClick={() => void copyClientConfigurator(item)}>Kopiuj link</button><button type="button" className="primary" onClick={() => void sendClientConfigurator(item)}>Wyślij link</button></div>)}</div><h3>Historia ofert</h3><div className="history-list">{history.length ? history.map((item) => <div className="history-row" key={item.number}><span><b>{item.number}</b><small>{item.customer} · {item.model}{item.version ? ` · ${item.version}` : ""}</small></span><strong>{money(item.total)}</strong><time>{item.date}</time><div className="history-row-actions"><button type="button" onClick={() => { setHistoryPreview(item); setAdminOpen(false); }}>Podgląd</button><button type="button" className="primary" onClick={() => editHistoryOffer(item)}>Edytuj ofertę</button></div></div>) : <p className="empty">Historia pojawi się po przygotowaniu pierwszej oferty.</p>}</div><p className="admin-note">Przycisk „Edytuj ofertę” otwiera bezpośrednio konfigurator wyposażenia. Nowe oferty odtwarzają całą konfigurację; w starszych wpisach wyposażenie należy wybrać ponownie.</p></Modal>}
-      {historyPreview && <Modal title={`Oferta ${historyPreview.number}`} onClose={() => setHistoryPreview(null)}><div className="history-detail-head"><div><span>KLIENT</span><strong>{historyPreview.customer}</strong><small>{historyPreview.customerEmail || "Brak adresu e-mail"}</small></div><div><span>MODEL</span><strong>{historyPreview.model}</strong><small>{historyPreview.version || "Wersja nie została zapisana"}</small></div><div><span>WARTOŚĆ BRUTTO</span><strong>{money(historyPreview.total)}</strong><small>{historyPreview.date}</small></div></div><iframe className="history-document" title={`Podgląd ${historyPreview.number}`} srcDoc={historyDocument(historyPreview)}/><div className="history-detail-actions"><button className="primary" onClick={() => editHistoryOffer(historyPreview)}>Edytuj ofertę</button><button onClick={() => void downloadPdf(historyPreview)}>Pobierz PDF</button><button onClick={() => { const frame = window.open("", "_blank", "width=1000,height=800"); if (!frame) return showToast("Zezwól przeglądarce na otwieranie okien"); frame.document.write(historyDocument(historyPreview)); frame.document.close(); frame.setTimeout(() => frame.print(), 300); }}>Drukuj</button><button className="danger" onClick={() => removeHistoryOffer(historyPreview.number)}>Usuń z historii</button></div></Modal>}
+      {adminOpen && <Modal title="Panel administratora" onClose={() => setAdminOpen(false)}><div className="admin-kpis"><div><strong>{models.length}</strong><span>modeli</span></div><div><strong>{models.reduce((sum, item) => sum + item.options.length + item.delivery.length, 0)}</strong><span>pozycji cenowych</span></div><div><strong>{history.length}</strong><span>zapisanych ofert</span></div></div><div className="admin-actions"><label>Wybierz nowy Excel<input type="file" accept=".xlsx,.xls" onChange={(e) => e.target.files?.[0] && showToast(`Wybrano ${e.target.files[0].name}. Plik oczekuje na walidację i publikację katalogu.`)}/></label><button onClick={() => download("katalog-bali-a-2026.json", JSON.stringify(catalog, null, 2), "application/json")}>Eksport danych katalogu</button></div><h3>Konfiguratory dla klientów</h3><p className="admin-section-intro">Wyślij klientowi link do wybranego modelu. Klient sam wybierze wersję, wyposażenie i prześle gotową konfigurację do OYC.</p><div className="client-link-list">{models.map((item) => <div key={item.id}><span><b>{item.name}</b><small>{item.versions.length} {item.versions.length === 2 ? "wersje" : "wersji"} · {item.options.length + item.delivery.length} pozycji</small></span><button type="button" onClick={() => void copyClientConfigurator(item)}>Kopiuj link</button><button type="button" className="primary" onClick={() => void sendClientConfigurator(item)}>Wyślij link</button></div>)}</div><h3>Historia ofert</h3><div className="history-list">{history.length ? history.map((item) => <div className="history-row" key={item.number}><span><b>{item.number}</b><small>{item.customer} · {item.model}{item.version ? ` · ${item.version}` : ""}</small></span><strong>{money(historyNetTotal(item))}</strong><time>{item.date}</time><div className="history-row-actions"><button type="button" onClick={() => { setHistoryPreview(item); setAdminOpen(false); }}>Podgląd</button><button type="button" className="primary" onClick={() => editHistoryOffer(item)}>Edytuj ofertę</button></div></div>) : <p className="empty">Historia pojawi się po przygotowaniu pierwszej oferty.</p>}</div><p className="admin-note">Przycisk „Edytuj ofertę” otwiera bezpośrednio konfigurator wyposażenia. Nowe oferty odtwarzają całą konfigurację; w starszych wpisach wyposażenie należy wybrać ponownie.</p></Modal>}
+      {historyPreview && <Modal title={`Oferta ${historyPreview.number}`} onClose={() => setHistoryPreview(null)}><div className="history-detail-head"><div><span>KLIENT</span><strong>{historyPreview.customer}</strong><small>{historyPreview.customerEmail || "Brak adresu e-mail"}</small></div><div><span>MODEL</span><strong>{historyPreview.model}</strong><small>{historyPreview.version || "Wersja nie została zapisana"}</small></div><div><span>CENA OFERTOWA NETTO</span><strong>{money(historyNetTotal(historyPreview))}</strong><small>{historyPreview.date}</small></div></div><iframe className="history-document" title={`Podgląd ${historyPreview.number}`} srcDoc={historyDocument(historyPreview)}/><div className="history-detail-actions"><button className="primary" onClick={() => editHistoryOffer(historyPreview)}>Edytuj ofertę</button><button onClick={() => void downloadPdf(historyPreview)}>Pobierz PDF</button><button onClick={() => { const frame = window.open("", "_blank", "width=1000,height=800"); if (!frame) return showToast("Zezwól przeglądarce na otwieranie okien"); frame.document.write(historyDocument(historyPreview)); frame.document.close(); frame.setTimeout(() => frame.print(), 300); }}>Drukuj</button><button className="danger" onClick={() => removeHistoryOffer(historyPreview.number)}>Usuń z historii</button></div></Modal>}
       {planOpen && planPreview && <div className="plan-lightbox"><button className="plan-lightbox-backdrop" onClick={() => setPlanOpen(false)} aria-label="Zamknij powiększony plan"/><section className="plan-lightbox-dialog" role="dialog" aria-modal="true" aria-label={`Plan: ${version.name}`}><header><div><p>{model.name} · PLAN WNĘTRZA</p><h2>{version.name}</h2></div><button onClick={() => setPlanOpen(false)} aria-label="Zamknij">×</button></header><div className="plan-lightbox-image"><Image src={planPreview} alt={`Powiększony plan: ${version.name}`} fill sizes="96vw" priority unoptimized/></div></section></div>}
       {toast && <div className="toast">{toast}</div>}
     </main>
@@ -678,8 +682,8 @@ export function Configurator() {
 function SectionHead({ eyebrow, title, text }: { eyebrow: string; title: string; text: string }) {
   return <header className="section-head"><p>{eyebrow}</p><h2>{title}</h2><span>{text}</span></header>;
 }
-function StepFooter({ price, gross = false, onNext }: { price: number; gross?: boolean; onNext: () => void }) {
-  return <div className="step-footer"><span>{gross ? "RAZEM BRUTTO" : "AKTUALNA WARTOŚĆ NETTO"}<strong>{money(price)}</strong></span><button className="primary" onClick={onNext}>Dalej →</button></div>;
+function StepFooter({ price, offerNet = false, onNext }: { price: number; offerNet?: boolean; onNext: () => void }) {
+  return <div className="step-footer"><span>{offerNet ? "CENA OFERTOWA NETTO" : "AKTUALNA WARTOŚĆ NETTO"}<strong>{money(price)}</strong></span><button className="primary" onClick={onNext}>Dalej →</button></div>;
 }
 function PriceRow({ label, value }: { label: string; value: number | null }) {
   return <div className="price-row"><span>{label}</span><strong>{value === null ? "Cena na zapytanie" : money(value)}</strong></div>;
