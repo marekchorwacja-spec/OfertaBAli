@@ -462,7 +462,7 @@
         {
           "id": "bali-catsmart-89",
           "sourceRow": 89,
-          "description": "Odsysacz wody o niskim zużyciu energii 12 V, 65 l/h (zalecane panele słoneczne)",
+          "description": "Odsalarka wody o niskim zużyciu energii 12 V, 65 l/h (zalecane panele słoneczne)",
           "price": 14600,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -472,7 +472,7 @@
         {
           "id": "bali-catsmart-90",
           "sourceRow": 90,
-          "description": "Duży model toalety elektrycznej słodkowodnej (podać numer i lokalizację)",
+          "description": "Duży model toalety elektrycznej słodkowodnej (podać ilość i lokalizację)",
           "price": 1250,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -1412,7 +1412,7 @@
         {
           "id": "bali-catspace-86",
           "sourceRow": 86,
-          "description": "Odsysacz wody o niskim zużyciu energii 12 V, 60 l/h (zalecane panele słoneczne)",
+          "description": "Odsalarka wody o niskim zużyciu energii 12 V, 60 l/h (zalecane panele słoneczne)",
           "price": 14600,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -1432,7 +1432,7 @@
         {
           "id": "bali-catspace-88",
           "sourceRow": 88,
-          "description": "Duży model toalety elektrycznej słodkowodnej (podać numer i lokalizację)",
+          "description": "Duży model toalety elektrycznej słodkowodnej (podać ilość i lokalizację)",
           "price": 1250,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -2420,7 +2420,7 @@
         {
           "id": "bali-4-2-87",
           "sourceRow": 87,
-          "description": "Odsysacz wody 230 V 240 L/H (wymaga agregatu prądotwórczego)",
+          "description": "Odsalarka wody 230 V 240 L/H (wymaga agregatu prądotwórczego)",
           "price": 21700,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -2430,7 +2430,7 @@
         {
           "id": "bali-4-2-88",
           "sourceRow": 88,
-          "description": "Odsysacz wody 120 V 240 l/h (wymaga agregatu prądotwórczego)",
+          "description": "Odsalarka wody 120 V 240 l/h (wymaga agregatu prądotwórczego)",
           "price": 23700,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -2440,7 +2440,7 @@
         {
           "id": "bali-4-2-89",
           "sourceRow": 89,
-          "description": "Duży model toalety elektrycznej słodkowodnej (podać numer i lokalizację)",
+          "description": "Duży model toalety elektrycznej słodkowodnej (podać ilość i lokalizację)",
           "price": 1250,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -3600,7 +3600,7 @@
         {
           "id": "bali-4-3-105",
           "sourceRow": 105,
-          "description": "Odsysacz wody o niskim zużyciu energii 48 V, 115 l/h (1 lub 2)",
+          "description": "Odsalarka wody o niskim zużyciu energii 48 V, 115 l/h (1 lub 2)",
           "price": 19000,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -3610,7 +3610,7 @@
         {
           "id": "bali-4-3-106",
           "sourceRow": 106,
-          "description": "Odsysacz wody 230 V/50 Hz 240 l/h",
+          "description": "Odsalarka wody 230 V/50 Hz 240 l/h",
           "price": 22000,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -3620,7 +3620,7 @@
         {
           "id": "bali-4-3-107",
           "sourceRow": 107,
-          "description": "Odsysacz wody 230 V/60 Hz 240 l/h",
+          "description": "Odsalarka wody 230 V/60 Hz 240 l/h",
           "price": 23000,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -3630,7 +3630,7 @@
         {
           "id": "bali-4-3-108",
           "sourceRow": 108,
-          "description": "Duża elektryczna toaleta słodkowodna (podać numer i lokalizację)",
+          "description": "Duża elektryczna toaleta słodkowodna (podać ilość i lokalizację)",
           "price": 1300,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -4862,7 +4862,7 @@
         {
           "id": "bali-4-6-96",
           "sourceRow": 96,
-          "description": "Duży model toalety elektrycznej słodkowodnej (podać numer i lokalizację)",
+          "description": "Duży model toalety elektrycznej słodkowodnej (podać ilość i lokalizację)",
           "price": 1250,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -6212,7 +6212,7 @@
         {
           "id": "bali-5-2-101",
           "sourceRow": 101,
-          "description": "Odsysacz wody o niskim zużyciu energii 48 V 240 L/H",
+          "description": "Odsalarka wody o niskim zużyciu energii 48 V 240 L/H",
           "price": 23700,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -6222,7 +6222,7 @@
         {
           "id": "bali-5-2-102",
           "sourceRow": 102,
-          "description": "Odsysacz wody o niskim zużyciu energii 48 V 240 L/H ZAPASOWY",
+          "description": "Odsalarka wody o niskim zużyciu energii 48 V 240 L/H ZAPASOWA",
           "price": 23700,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -6232,7 +6232,7 @@
         {
           "id": "bali-5-2-103",
           "sourceRow": 103,
-          "description": "Odsysacz wody 230 V/50 Hz 240 l/h (wymagany generator mini 20 KVA) Niekompatybilny z ZAPASOWYM urzadzeniem wodnym",
+          "description": "Odsalarka wody 230 V/50 Hz 240 l/h (wymagany generator mini 20 KVA) Niekompatybilny z ZAPASOWĄ odsalarką wody",
           "price": 21700,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -6242,7 +6242,7 @@
         {
           "id": "bali-5-2-104",
           "sourceRow": 104,
-          "description": "Odsysacz wody 230 V/60 Hz 240 l/h (wymagany generator mini 20 KVA) Niekompatybilny z ZAPASOWYM urzadzeniem wodnym",
+          "description": "Odsalarka wody 230 V/60 Hz 240 l/h (wymagany generator mini 20 KVA) Niekompatybilny z ZAPASOWĄ odsalarką wody",
           "price": 23700,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -6252,7 +6252,7 @@
         {
           "id": "bali-5-2-105",
           "sourceRow": 105,
-          "description": "Duża elektryczna toaleta słodkowodna (podać numer i lokalizację)",
+          "description": "Duża elektryczna toaleta słodkowodna (podać ilość i lokalizację)",
           "price": 1250,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -6262,7 +6262,7 @@
         {
           "id": "bali-5-2-106",
           "sourceRow": 106,
-          "description": "Toalety japońskie PLANUS RELAX (podać numer i lokalizację)",
+          "description": "Toalety japońskie PLANUS RELAX (podać ilość i lokalizację)",
           "price": 6470,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -6582,7 +6582,7 @@
         {
           "id": "bali-5-2-140",
           "sourceRow": 140,
-          "description": "Zdejmowane siedzisko do stołu w salonie (podać numer)",
+          "description": "Zdejmowane siedzisko do stołu w salonie (podać ilość)",
           "price": 330,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -7688,7 +7688,7 @@
         {
           "id": "bali-5-8-99",
           "sourceRow": 99,
-          "description": "Odsysacz wody o niskim zużyciu energii 24 V 105 L/H (panele słoneczne i/lub dodatkowe alternatory)",
+          "description": "Odsalarka wody o niskim zużyciu energii 24 V 105 L/H (panele słoneczne i/lub dodatkowe alternatory)",
           "price": 16400,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -7698,7 +7698,7 @@
         {
           "id": "bali-5-8-100",
           "sourceRow": 100,
-          "description": "Odsysacz wody 230 V/ 50 Hz 240 l/h (wymagany generator)",
+          "description": "Odsalarka wody 230 V/ 50 Hz 240 l/h (wymagany generator)",
           "price": 21700,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -7708,7 +7708,7 @@
         {
           "id": "bali-5-8-101",
           "sourceRow": 101,
-          "description": "Odsysacz wody 230 V/ 60 Hz 240 l/h (wymagany generator)",
+          "description": "Odsalarka wody 230 V/ 60 Hz 240 l/h (wymagany generator)",
           "price": 23700,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -7718,7 +7718,7 @@
         {
           "id": "bali-5-8-102",
           "sourceRow": 102,
-          "description": "Duża elektryczna toaleta słodkowodna (podać numer i lokalizację)",
+          "description": "Duża elektryczna toaleta słodkowodna (podać ilość i lokalizację)",
           "price": 1250,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -8772,7 +8772,7 @@
           },
           {
             "sourceRow": 114,
-            "description": "Odsysacz wody o niskim zużyciu energii 48 V-105 L/h"
+            "description": "Odsalarka wody o niskim zużyciu energii 48 V-105 L/h"
           },
           {
             "sourceRow": 115,
@@ -9234,7 +9234,7 @@
         {
           "id": "bali-7-0-125",
           "sourceRow": 125,
-          "description": "Odsysacz wody 230 V - 50 Hz - 240 l/h",
+          "description": "Odsalarka wody 230 V - 50 Hz - 240 l/h",
           "price": 25000,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -9244,7 +9244,7 @@
         {
           "id": "bali-7-0-126",
           "sourceRow": 126,
-          "description": "Odsysacz wody 230 V - 60 Hz - 240 l/h",
+          "description": "Odsalarka wody 230 V - 60 Hz - 240 l/h",
           "price": 25000,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -9374,7 +9374,7 @@
         {
           "id": "bali-7-0-155",
           "sourceRow": 155,
-          "description": "Elektryczna toaleta bidetowa (podać numer i lokalizację)",
+          "description": "Elektryczna toaleta bidetowa (podać ilość i lokalizację)",
           "price": 6500,
           "priceOnRequest": false,
           "defaultQuantity": 0,

@@ -1,0 +1,33 @@
+.quantity-control {
+  align-items: center;
+  color: var(--muted-text);
+  display: flex;
+  font-size: 9px;
+  gap: 8px;
+  letter-spacing: 0.08em;
+  margin-top: 10px;
+  text-transform: uppercase;
+  width: max-content;
+}
+
+.quantity-control input {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-weight: 700;
+  padding: 7px 6px;
+  text-align: center;
+  width: 58px;
+}
+
+.quantity-control input:focus {
+  border-color: var(--gold);
+  outline: 1px solid var(--gold);
+}
+
+.quantity-control small {
+  color: var(--muted-text);
+  letter-spacing: 0;
+  margin: 0;
+  text-transform: none;
+}
