@@ -11,8 +11,8 @@ test("watermaker naming is corrected in every model and translation", async () =
   const translations = await readFile(translationsUrl, "utf8");
   const descriptions = catalog.models.flatMap((model) => model.options.map((option) => option.description));
 
-  assert.equal(descriptions.some((description) => /odsysacz/i.test(description)), false);
-  assert.doesNotMatch(translations, /odsysacz/i);
+  assert.equal(descriptions.some((description) => /odsysacz|zasobnik/i.test(description)), false);
+  assert.doesNotMatch(translations, /odsysacz|zasobnik/i);
   assert.ok(descriptions.some((description) => description.includes("Odsalarka wody")));
 });
 
