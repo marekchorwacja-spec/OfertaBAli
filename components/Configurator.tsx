@@ -5,7 +5,7 @@ import Image from "next/image";
 import type { TDocumentDefinitions } from "pdfmake/interfaces";
 import catalog from "@/data/models.json";
 import { calculateOfferPricing } from "@/lib/pricing";
-import { hasConfigurableQuantity } from "@/lib/options";
+import { hasConfigurableQuantity, maxConfigurableQuantity } from "@/lib/options";
 import { buildContractPdfDefinition, contractNumberForOffer, createContractDraft, type BuyerType, type ContractDraft, type ContractOfferData } from "@/lib/contract";
 
 type Version = { id: string; name: string; basePrice: number; standardEngines: string };
@@ -315,7 +315,7 @@ export function Configurator() {
   });
   const setOptionQuantity = (item: Option, quantity: number) => setSelected((current) => ({
     ...current,
-    [selectionKey(item)]: Math.min(99, Math.max(0, Math.trunc(Number.isFinite(quantity) ? quantity : 0))),
+    [selectionKey(item)]: Math.min(maxConfigurableQuantity(item), Math.max(0, Math.trunc(Number.isFinite(quantity) ? quantity : 0))),
   }));
   const updateCustomer = <K extends keyof Customer>(field: K, value: Customer[K]) => setCustomer((current) => ({ ...current, [field]: value }));
   const showToast = (message: string) => { setToast(message); window.setTimeout(() => setToast(""), 2600); };
@@ -768,9 +768,10 @@ export function Configurator() {
                 const key = selectionKey(item);
                 const qty = selected[key] ?? item.defaultQuantity;
                 const configurableQuantity = hasConfigurableQuantity(item);
+                const quantityLimit = maxConfigurableQuantity(item);
                 return <article key={key} className={qty > 0 ? "option-card selected" : "option-card"} onClick={() => toggleOption(item)}>
                   <button aria-label={qty > 0 ? "Usuń opcję" : "Dodaj opcję"}>{qty > 0 ? "✓" : "+"}</button>
-                  <div><p>{displayCategory(item.category)}</p><h4>{item.description}</h4>{displayCategory(item.category) === "Dostawa" && <small>Ta pozycja nie podlega rabatowi</small>}{item.note && <small>{item.note}</small>}{configurableQuantity && <label className="quantity-control" onClick={(event) => event.stopPropagation()}><span>Ilość</span><input type="number" inputMode="numeric" min="0" max="99" step="1" value={qty} onChange={(event) => setOptionQuantity(item, Number(event.target.value))} aria-label={`Ilość: ${item.description}`}/><small>× {item.price === null ? "cena na zapytanie" : money(item.price)} / szt.</small></label>}</div>
+                  <div><p>{displayCategory(item.category)}</p><h4>{item.description}</h4>{displayCategory(item.category) === "Dostawa" && <small>Ta pozycja nie podlega rabatowi</small>}{item.note && <small>{item.note}</small>}{configurableQuantity && <label className="quantity-control" onClick={(event) => event.stopPropagation()}><span>Ilość{quantityLimit === 2 ? " (1 lub 2)" : ""}</span><input type="number" inputMode="numeric" min="0" max={quantityLimit} step="1" value={qty} onChange={(event) => setOptionQuantity(item, Number(event.target.value))} aria-label={`Ilość: ${item.description}`}/><small>× {item.price === null ? "cena na zapytanie" : money(item.price)} / szt.</small></label>}</div>
                   <strong>{item.priceOnRequest || item.price === null ? "Cena na zapytanie" : `+ ${money(item.price * Math.max(qty, 1))}`}</strong>
                 </article>;
               })}</div>

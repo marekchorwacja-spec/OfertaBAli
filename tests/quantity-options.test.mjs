@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import catalog from "../data/models.json" with { type: "json" };
-import { hasConfigurableQuantity } from "../lib/options.ts";
+import { hasConfigurableQuantity, maxConfigurableQuantity } from "../lib/options.ts";
 import { calculateOfferPricing } from "../lib/pricing.ts";
 
 const translationsUrl = new URL("../data/translations_a2027.json", import.meta.url);
@@ -38,6 +38,25 @@ test("a quantity of four multiplies the unit price by four", () => {
 
   assert.equal(result.equipmentNet, unitPrice * 4);
   assert.equal(result.net, unitPrice * 4);
+});
+
+test("solar panel kits marked 1 or 2 accept at most two units", () => {
+  const solarPanelOptions = catalog.models.flatMap((model) => model.options.filter((option) => option.description.includes("Zestaw paneli słonecznych (2 x 110 W): określić 1 lub 2")));
+
+  assert.equal(solarPanelOptions.length, 2);
+  assert.ok(solarPanelOptions.every(hasConfigurableQuantity));
+  assert.ok(solarPanelOptions.every((option) => maxConfigurableQuantity(option) === 2));
+
+  const result = calculateOfferPricing({
+    basePrice: 0,
+    excellencePrice: 0,
+    options: [{ price: solarPanelOptions[0].price, quantity: 2 }],
+    delivery: [],
+    discount1Percent: 0,
+    discount2Percent: 0,
+    vatPercent: 0,
+  });
+  assert.equal(result.equipmentNet, solarPanelOptions[0].price * 2);
 });
 
 test("BALI 5.2 forepeak options use the approved Polish descriptions", () => {
