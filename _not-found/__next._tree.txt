@@ -1,2 +1,2 @@
-:HL["/OfertaBAli/_next/static/chunks/0m6.p4k1kptbj.css","style"]
-0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"/_not-found","param":null,"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}},"staleTime":300,"buildId":"AELKOZ8z7utpkmfPP7csY"}
+:HL["/OfertaBAli/_next/static/chunks/079sea7a977zz.css","style"]
+0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"/_not-found","param":null,"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}},"staleTime":300,"buildId":"QC_-N0nWoz1Aahd7r1V7K"}
