@@ -6392,7 +6392,7 @@
         {
           "id": "bali-5-2-121",
           "sourceRow": 121,
-          "description": "Wyposażony szczyt dziobowy prawej burty (materac, prysznic, WC elektryczne, właz i roleta zaciemniająca)",
+          "description": "Wyposażona dziobowa kabina techniczna (forpik) po prawej burcie (materac, prysznic, toaleta elektryczna, luk i roleta zaciemniająca)",
           "price": 6080,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -6402,7 +6402,7 @@
         {
           "id": "bali-5-2-122",
           "sourceRow": 122,
-          "description": "Wyposażony szczyt dziobowy prawej burty (materac, właz i roleta zaciemniająca)",
+          "description": "Wyposażona dziobowa kabina techniczna (forpik) po prawej burcie (materac, luk i roleta zaciemniająca)",
           "price": 3300,
           "priceOnRequest": false,
           "defaultQuantity": 0,
@@ -6412,7 +6412,7 @@
         {
           "id": "bali-5-2-123",
           "sourceRow": 123,
-          "description": "Wyposażony szczyt tylny (materac, prysznic, klapa, WC elektryczne i roleta zaciemniająca)",
+          "description": "Wyposażona dziobowa kabina techniczna (forpik) po lewej burcie (materac, prysznic, luk, toaleta elektryczna i roleta zaciemniająca)",
           "price": 5300,
           "priceOnRequest": false,
           "defaultQuantity": 0,

@@ -39,3 +39,12 @@ test("a quantity of four multiplies the unit price by four", () => {
   assert.equal(result.equipmentNet, unitPrice * 4);
   assert.equal(result.net, unitPrice * 4);
 });
+
+test("BALI 5.2 forepeak options use the approved Polish descriptions", () => {
+  const bali52 = catalog.models.find((model) => model.id === "bali-5-2");
+  const descriptionsById = Object.fromEntries(bali52.options.map((option) => [option.id, option.description]));
+
+  assert.equal(descriptionsById["bali-5-2-121"], "Wyposażona dziobowa kabina techniczna (forpik) po prawej burcie (materac, prysznic, toaleta elektryczna, luk i roleta zaciemniająca)");
+  assert.equal(descriptionsById["bali-5-2-122"], "Wyposażona dziobowa kabina techniczna (forpik) po prawej burcie (materac, luk i roleta zaciemniająca)");
+  assert.equal(descriptionsById["bali-5-2-123"], "Wyposażona dziobowa kabina techniczna (forpik) po lewej burcie (materac, prysznic, luk, toaleta elektryczna i roleta zaciemniająca)");
+});
